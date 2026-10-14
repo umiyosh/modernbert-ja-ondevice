@@ -1,0 +1,14 @@
+[project]
+name = "modernbert-ja-ondevice"
+version = "0.1.0"
+description = "Run ModernBERT-Ja masked LMs on device: Core ML (Apple Neural Engine) conversion with accuracy checks against PyTorch."
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    # coremltools 9.0 is tested up to torch 2.7.0; newer torch emits untested-version errors.
+    "torch==2.7.0",
+    "transformers>=4.48",
+    "coremltools==9.0",
+    "sentencepiece",
+    "protobuf",
+    "numpy",
+]
