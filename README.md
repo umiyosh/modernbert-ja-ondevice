@@ -65,7 +65,7 @@ python training/train.py sbintuitions/modernbert-ja-130m data/base.npz,data/aug.
 python scripts/convert_detector.py ckpt/step30000 build/detector-b32-l64.mlpackage --batch 32 --length 64
 ```
 
-One epoch is 64,332 steps of batch 32 (about 9 hours on an M-series Mac with MPS). The published model is step 30,000, chosen on the development set. `--exclude` takes one sentence per line; with the same exclusions the scripts rebuild the data the model was trained on exactly.
+One epoch is 64,332 steps of batch 32 (about 10 hours on an M-series Mac with MPS). The published model is step 30,000, chosen on the development set. `--exclude` takes one sentence per line; with the same exclusions the scripts rebuild the data the model was trained on exactly.
 
 The Core ML detector takes `input_ids` and `attention_mask` (batch × length, int32) and returns `p_typo` (batch × length), P(TYPO) per token: 66 ms for 32 rows of 64 tokens on the Neural Engine.
 
