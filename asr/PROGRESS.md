@@ -12,3 +12,6 @@ Numbers come from train and val only until the final evaluation; test stays seal
   homophone errors per 100 clips, no sign that Whisper remembers the train clips. The rules of
   `classify.py` were set while reading these clips, so the 500 test clips are excluded from test.
 - Split v0: no clip, speaker or normalized sentence crosses train / val / test (see README).
+- Evaluation protocol fixed before training: span recall at ≤1 false mark per 1,000 characters, C
+  (new detector) against D (Kotobae today), speaker-level paired bootstrap and permutation test, and
+  adopt / reject / undecided on three separate axes (PROTOCOL.md).

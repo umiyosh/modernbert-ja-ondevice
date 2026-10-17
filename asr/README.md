@@ -3,7 +3,8 @@
 Work in progress. The goal is to find out, with an evaluation free of leaks, whether training the
 typo detector on real speech-recognition errors makes it catch errors such as 誤変換 → 5変換 that it
 misses today ([kotobae#98](https://github.com/umiyosh/kotobae/issues/98)). The answer is reported as
-adopt, reject or undecided; [PROGRESS.md](PROGRESS.md) records each step.
+adopt, reject or undecided under [PROTOCOL.md](PROTOCOL.md), fixed before training; [PROGRESS.md](PROGRESS.md)
+records each step.
 
 ## Design constraint
 

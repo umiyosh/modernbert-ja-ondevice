@@ -15,5 +15,5 @@ out=$("$@") || { echo "report failed; nothing committed" >&2; exit 1; }
 msg=$(printf '%s\n' "$out" | grep '^COMMIT: ' | tail -1 | cut -c9-)
 [ -n "$msg" ] || { echo "report printed no COMMIT line; nothing committed" >&2; exit 1; }
 
-git -C "$repo" add -- asr/*.py asr/*.sh asr/README.md asr/PROGRESS.md asr/reports
+git -C "$repo" add -- asr/*.py asr/*.sh asr/*.md asr/reports
 git -C "$repo" commit -q -m "$msg" && git -C "$repo" log -1 --oneline
