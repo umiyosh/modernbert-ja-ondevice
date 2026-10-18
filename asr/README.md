@@ -45,9 +45,12 @@ has been transcribed before that.
 CV=<dir>/cv-corpus-27.0-2026-09-11/ja   # Common Voice, not in this repository
 DATA=<dir>                              # transcripts and manifests, not in this repository
 python asr/make_split.py $CV $DATA $DATA/split-v0
-python asr/cv_asr.py $CV $DATA/night1.jsonl --order $DATA/split-v0/asr_order.txt --n 70000
+export HF_HUB_OFFLINE=1   # the model is cached; no network while transcribing
+while :; do python asr/cv_asr.py $CV $DATA/night1.jsonl --order $DATA/split-v0/asr_order.txt --n 156327; [ $? -eq 75 ] || break; done
 python asr/report_asr.py $DATA/night1.jsonl $DATA/split-v0/manifest.tsv asr/reports/asr-night1.json asr/PROGRESS.md "<title>"
 python asr/classify.py $DATA/night1.jsonl      # verdicts and examples, printed locally only
 ```
 
-`nightly.sh <pid> <report command>` waits for a nightly job, writes its report and commits.
+`cv_asr.py` exits with 75 after a clip that does not finish within `--limit` seconds and lists it in
+`<out>.hung`; the loop restarts it and the clip is skipped. `nightly.sh <pid> <report command>` waits
+for a nightly job, writes its report and commits.
