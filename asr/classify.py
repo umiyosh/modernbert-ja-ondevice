@@ -98,7 +98,8 @@ def diff(ref: str, hyp: str) -> tuple[str, list[dict]]:
         if op == "replace" and ka == kb and (KANA.fullmatch(sa) or KANA.fullmatch(sb)):
             continue
         kind = {"delete": "drop", "insert": "extra"}.get(op) or ("homophone" if ka == kb else "mishear")
-        edits.append({"kind": kind, "ref": sa, "hyp": sb})
+        # at: the script words replaced; ref_kana / hyp_kana: readings, to compare what two recognizers heard
+        edits.append({"kind": kind, "ref": sa, "hyp": sb, "at": [i1, i2], "ref_kana": ka, "hyp_kana": kb})
     return ("error", edits) if edits else ("notation", [])
 
 
