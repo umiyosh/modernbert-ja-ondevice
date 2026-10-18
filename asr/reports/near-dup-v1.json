@@ -1,35 +1,41 @@
 {
- "created": "2026-10-18T23:05:19+0900",
- "method": "Jaccard of character 3-grams after classify.norm; top 50 candidates by shared 3-grams",
- "threshold": 0.5,
- "held_out_sentences_with_a_near_train_sentence": {
-  "val": {
-   "0.5": 289,
+ "created": "2026-10-18T23:09:51+0900",
+ "method": "Jaccard of character 3-grams after classify.norm >= 0.5, all pairs by prefix filtering",
+ "later_sentences_with_a_near_earlier_sentence": {
+  "train-val": {
+   "0.5": 290,
    "0.6": 150,
    "0.7": 70,
    "0.8": 37,
    "0.9": 13
   },
-  "test": {
+  "train-test": {
    "0.5": 305,
    "0.6": 153,
    "0.7": 72,
    "0.8": 36,
    "0.9": 11
+  },
+  "val-test": {
+   "0.5": 233,
+   "0.6": 116,
+   "0.7": 47,
+   "0.8": 24,
+   "0.9": 8
   }
  },
- "train_sentences_near_val_or_test": {
-  "0.5": 542,
-  "0.6": 270,
-  "0.7": 127,
-  "0.8": 64,
-  "0.9": 16
+ "sentences_removed": {
+  "train": 543,
+  "val": 245
  },
- "train_clips_removed": 5215,
+ "clips_removed": {
+  "train": 5219,
+  "val": 251
+ },
  "v1_clips": {
-  "train": 142147,
-  "val": 8965,
+  "train": 142143,
+  "val": 8714,
   "test": 8520
  },
- "v1_manifest_sha256": "673704a7df5b42c437a9006d64afcd34e77c3ed970f8f9ffa1a981ca580860d7"
+ "v1_manifest_sha256": "b2c43d0ee8b436a2e44dcbbb9140e1b55dc342ed79aa2d7b84ab7b25957d2822"
 }

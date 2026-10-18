@@ -38,10 +38,17 @@ them. The official splits share no speaker but do share 52–55 normalized sente
 135,468 validated clips are in no split. The 500 test clips looked at in the trial are excluded from
 test.
 
-Split v1 (`near_dup.py`, used for training) also removes the 5,215 train clips (542 sentences) whose
-sentence nearly matches a val or test sentence: a Jaccard similarity of character 3-grams of 0.5 or
-more, which catches the same frame with one word swapped (木村さんに電話／本を貸してもらいました).
-Val and test do not change. `quality_check.py` found no duplicate audio, empty clip or clip over 30 s. Test is transcribed only for the final evaluation, and `report_asr.py` fails if any test clip
+Split v1 (`near_dup.py`, used for training) also removes sentences that nearly match a later split's
+sentence: a Jaccard similarity of character 3-grams of 0.5 or more, found for all pairs, which catches
+the same frame with one word swapped (木村さんに電話／本を貸してもらいました). Train loses 543
+sentences (5,219 clips) near val or test, val loses 245 sentences (251 clips) near test, and test does
+not change: train 142,143, val 8,714, test 8,520 clips. `quality_check.py` found no duplicate audio,
+empty clip or clip over 30 s.
+
+`leak_check.py` then checks the split from scratch (reports/leak-v1.json: no raw, normalized or near
+sentence, speaker or audio hash shared by any two splits; no test clip transcribed), writes
+`trainval.tsv` for training and leaves `manifest.tsv` and `test.tsv` unreadable until the final
+evaluation. Test is transcribed only for the final evaluation, and `report_asr.py` fails if any test clip
 has been transcribed before that.
 
 ## Steps

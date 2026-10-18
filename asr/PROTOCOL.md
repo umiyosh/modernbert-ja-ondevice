@@ -34,11 +34,16 @@ decision.
 - **train**: Common Voice 27.0 ja clips of split v1 (no clip, speaker or normalized sentence shared
   with val or test, and no sentence with a character 3-gram Jaccard of 0.5 or more to one of them),
   transcribed with Whisper.
-- **val**: the official dev core. Used for every choice: checkpoints, thresholds, mixing, seeds.
+- **val**: the official dev core minus sentences near a test sentence (same rule). Used for every
+  choice: checkpoints, thresholds, mixing, seeds.
 - **test**: the official test core minus the 500 trial clips. Transcribed and labelled once, after
   every choice is fixed; evaluated once.
-- **external holdout**: AquaVoice transcripts of a script read by a person, with the script as truth.
-  Never used for a choice. If it cannot be collected it is reported as not done.
+- **JWTD overlap**: val / test clips whose sentence is in JWTD v2 train, which D was trained on (94 val,
+  80 test sentences; `leak_check.py`), are left out of the primary metric and reported separately.
+- **external holdout**: a public Japanese speech corpus other than Common Voice, transcribed with a
+  recognizer other than Whisper, with its script as truth. Never used for a choice. If none can be
+  used it is reported as not done. Changed on 2026-10-18 from a script read into AquaVoice by the
+  user, which would take 40 minutes of their time; AquaVoice itself is therefore not tested.
 - **Kotobae regression sets**: `set.json` dev / holdout (JWTD, voice-style and hand-made errors) and the
   60 error-free evaluator texts (28,000 characters). Their fresh split was used once on 2026-10-15 and
   supports no claim here.
@@ -105,3 +110,12 @@ across splits; speakers across splits; audio file hashes across splits; derived 
 parent's split; the test manifest is never read by training code; overlap of val / test sentences
 with the detector's earlier training data (JWTD) and what is known of the pre-training data of
 ModernBERT-Ja and Whisper.
+
+Done on 2026-10-18 by `leak_check.py` (reports/leak-v1.json): every cross-split count is 0 and no test
+clip is transcribed. Training code reads `trainval.tsv` only; `manifest.tsv` and `test.tsv` have no read
+permission until step 9. Training rows are built from train paths of `trainval.tsv`, and the builder
+asserts it, so a derived sample cannot come from val or test. The pre-training data of ModernBERT-Ja and
+Whisper is not public and cannot be checked; Common Voice sentences include public-domain literature
+that is likely in such web corpora. C and D start from the same pre-trained model and read the same
+Whisper transcripts, so this cannot favour one over the other, but absolute recall may read higher than
+on unseen text.
