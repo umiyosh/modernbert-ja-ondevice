@@ -63,6 +63,30 @@ def norm(s: str) -> str:
     return s.replace("\0", "ー")
 
 
+def norm_map(s: str) -> tuple[str, list[int]] | None:
+    """norm(s), and for each of its characters the index in s it came from, so a span found on the
+    normalized text can be marked on the text a detector reads. None when NFKC joins characters (a
+    combining mark) and per-character normalization no longer equals norm."""
+    chars, src = [], []
+    for i, c in enumerate(s):
+        for x in unicodedata.normalize("NFKC", c).replace("%", "パーセント"):
+            chars.append(x)
+            src.append(i)
+    t = "".join(chars)
+    out, at, pos = [], [], 0
+    for m in re.finditer(r"\d+", t):
+        k = kansuji(m)
+        out += [t[pos : m.start()], k]
+        # The numeral's last character maps to the run's last digit, so a span over it ends there.
+        at += src[pos : m.start()] + [src[m.start()]] * (len(k) - 1) + [src[m.end() - 1]]
+        pos = m.end()
+    out.append(t[pos:])
+    at += src[pos:]
+    kept = [(x, j) for x, j in zip("".join(out), at) if x == "ー" or not PUNCT.fullmatch(x)]
+    n = "".join(x for x, _ in kept)
+    return (n, [j for _, j in kept]) if n == norm(s) else None
+
+
 def words(s: str) -> list[tuple[str, str, str]]:
     # (lemma, reading, surface); symbols and unknown words have no lemma and use the surface.
     return [(w.feature.lemma or w.surface, w.feature.kana or w.surface, w.surface) for w in TAGGER(s)]
@@ -98,8 +122,11 @@ def diff(ref: str, hyp: str) -> tuple[str, list[dict]]:
         if op == "replace" and ka == kb and (KANA.fullmatch(sa) or KANA.fullmatch(sb)):
             continue
         kind = {"delete": "drop", "insert": "extra"}.get(op) or ("homophone" if ka == kb else "mishear")
-        # at: the script words replaced; ref_kana / hyp_kana: readings, to compare what two recognizers heard
-        edits.append({"kind": kind, "ref": sa, "hyp": sb, "at": [i1, i2], "ref_kana": ka, "hyp_kana": kb})
+        # at: the script words replaced; ref_kana / hyp_kana: readings, to compare what two recognizers
+        # heard; hyp_chars: the edit's characters in norm(hyp) (empty for a drop, at the gap)
+        h0 = sum(len(w[2]) for w in hw[:j1])
+        edits.append({"kind": kind, "ref": sa, "hyp": sb, "at": [i1, i2], "ref_kana": ka, "hyp_kana": kb,
+                      "hyp_chars": [h0, h0 + len(sb)]})
     return ("error", edits) if edits else ("notation", [])
 
 
