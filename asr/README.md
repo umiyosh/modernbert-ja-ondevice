@@ -36,7 +36,12 @@ them. The official splits share no speaker but do share 52–55 normalized sente
 | test | 8,520 | 2,284 | 8,501 |
 
 135,468 validated clips are in no split. The 500 test clips looked at in the trial are excluded from
-test. Test is transcribed only for the final evaluation, and `report_asr.py` fails if any test clip
+test.
+
+Split v1 (`near_dup.py`, used for training) also removes the 5,215 train clips (542 sentences) whose
+sentence nearly matches a val or test sentence: a Jaccard similarity of character 3-grams of 0.5 or
+more, which catches the same frame with one word swapped (木村さんに電話／本を貸してもらいました).
+Val and test do not change. `quality_check.py` found no duplicate audio, empty clip or clip over 30 s. Test is transcribed only for the final evaluation, and `report_asr.py` fails if any test clip
 has been transcribed before that.
 
 ## Steps

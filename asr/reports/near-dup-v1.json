@@ -1,0 +1,35 @@
+{
+ "created": "2026-10-18T23:05:19+0900",
+ "method": "Jaccard of character 3-grams after classify.norm; top 50 candidates by shared 3-grams",
+ "threshold": 0.5,
+ "held_out_sentences_with_a_near_train_sentence": {
+  "val": {
+   "0.5": 289,
+   "0.6": 150,
+   "0.7": 70,
+   "0.8": 37,
+   "0.9": 13
+  },
+  "test": {
+   "0.5": 305,
+   "0.6": 153,
+   "0.7": 72,
+   "0.8": 36,
+   "0.9": 11
+  }
+ },
+ "train_sentences_near_val_or_test": {
+  "0.5": 542,
+  "0.6": 270,
+  "0.7": 127,
+  "0.8": 64,
+  "0.9": 16
+ },
+ "train_clips_removed": 5215,
+ "v1_clips": {
+  "train": 142147,
+  "val": 8965,
+  "test": 8520
+ },
+ "v1_manifest_sha256": "673704a7df5b42c437a9006d64afcd34e77c3ed970f8f9ffa1a981ca580860d7"
+}

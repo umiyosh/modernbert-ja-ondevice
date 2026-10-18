@@ -31,8 +31,9 @@ decision.
 
 ## Data
 
-- **train**: Common Voice 27.0 ja clips of `make_split.py` (no clip, speaker or normalized sentence
-  shared with val or test), transcribed with Whisper.
+- **train**: Common Voice 27.0 ja clips of split v1 (no clip, speaker or normalized sentence shared
+  with val or test, and no sentence with a character 3-gram Jaccard of 0.5 or more to one of them),
+  transcribed with Whisper.
 - **val**: the official dev core. Used for every choice: checkpoints, thresholds, mixing, seeds.
 - **test**: the official test core minus the 500 trial clips. Transcribed and labelled once, after
   every choice is fixed; evaluated once.
