@@ -18,12 +18,16 @@ results are not read as a ceiling of speech-recognition error detection.
 | | System | Role |
 | --- | --- | --- |
 | A | Rules: mark a word that is the wrong side of a pair in the JWTD misconversion table, or an unknown kanji / katakana run (IPADIC) | Simple baseline |
-| B | Jev, the per-bunsetsu question of Kotobae (probability ≥ 0.55) | Baseline; run only after its cost is approved |
+| B | Jev, the per-bunsetsu question of Kotobae (error measure, probability ≥ 0.55), one request per clip | Baseline; on test and the external holdout only, capped at $6 (approved 2026-10-18) |
 | D | Kotobae today: detector `umiyosh/modernbert-ja-130m-typo-detector` rev 2bf8db3 + candidate scoring with modernbert-ja-130m, thresholds 0.4707 / 5.13 | Main baseline |
 | C | D with the detector fine-tuned on speech-recognition errors (this work); thresholds refit on val | Candidate |
 
 C-det and D-det (the detectors alone, without candidate scoring) are reported as well. The primary
 comparison is C against D, because D is what C would replace.
+
+Kotobae shows the union of Jev's marks and the detector's marks, so C ∪ B against D ∪ B is reported
+as a secondary comparison: how many more errors a user would see marked. It takes no part in the
+decision.
 
 ## Data
 
