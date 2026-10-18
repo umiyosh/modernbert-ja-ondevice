@@ -15,19 +15,15 @@ usage: python asr/cv_asr.py <cv ja dir> <out.jsonl> --order <asr_order.txt> --n 
 import argparse
 import collections
 import csv
-import itertools
 import json
 import os
 import random
-import subprocess
 import threading
 import time
-from collections.abc import Iterator
-from concurrent.futures import ThreadPoolExecutor
 
 import mlx_whisper
-import numpy as np
-from mlx_whisper.audio import SAMPLE_RATE
+
+from audio_io import prefetch
 
 MODEL = "mlx-community/whisper-large-v3-turbo"
 HUNG = 75  # exit status after a hang; EX_TEMPFAIL, so a wrapper knows to restart
@@ -53,28 +49,6 @@ def pick(root: str, tsv: str, n: int, seed: int, holdout: list[str]) -> list[dic
         reads[r["sentence"]] += 1
     order.sort(key=lambda x: x[:2])
     return [r for *_, r in order[:n]]
-
-
-def decode(path: str) -> np.ndarray | None:
-    # mlx_whisper's load_audio returns an MLX array, which fails on worker threads without a GPU
-    # stream. Decode to numpy instead.
-    cmd = ["ffmpeg", "-nostdin", "-loglevel", "error", "-i", path, "-f", "s16le", "-ac", "1", "-ar", str(SAMPLE_RATE), "-"]
-    p = subprocess.run(cmd, capture_output=True)
-    if p.returncode != 0:
-        return None  # counted as skipped in the progress line
-    return np.frombuffer(p.stdout, np.int16).astype(np.float32) / 32768
-
-
-def prefetch(paths: list[str], depth: int = 16) -> Iterator[np.ndarray | None]:
-    # Decode the next clips while Whisper runs on the current one; at most `depth` ahead to bound memory.
-    with ThreadPoolExecutor(4) as ex:
-        it = iter(paths)
-        q = collections.deque(ex.submit(decode, p) for p in itertools.islice(it, depth))
-        for p in it:
-            yield q.popleft().result()
-            q.append(ex.submit(decode, p))
-        while q:
-            yield q.popleft().result()
 
 
 def main() -> None:
