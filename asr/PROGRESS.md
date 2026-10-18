@@ -15,3 +15,4 @@ Numbers come from train and val only until the final evaluation; test stays seal
 - Evaluation protocol fixed before training: span recall at ≤1 false mark per 1,000 characters, C
   (new detector) against D (Kotobae today), speaker-level paired bootstrap and permutation test, and
   adopt / reject / undecided on three separate axes (PROTOCOL.md).
+- 2026-10-18 10:01 transcribe Common Voice ja for night 1: train 15,849 clips (36.7% with errors, 1,497 homophone edits); val 8,965 clips (41.8% with errors, 739 homophone edits). Test transcripts: 0.
