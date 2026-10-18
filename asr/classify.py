@@ -42,8 +42,11 @@ def kansuji(m: re.Match) -> str:
     n = int(m.group(0))
     if n == 0:
         return "〇"
+    if n >= 10**16:
+        # A run this long is a code or a made-up string of digits, read one by one.
+        return "".join(DIGITS[int(d)] for d in m.group(0))
     out = ""
-    for v, u in ((10**8, "億"), (10**4, "万")):
+    for v, u in ((10**12, "兆"), (10**8, "億"), (10**4, "万")):
         q, n = divmod(n, v)
         if q:
             out += small(q) + u
