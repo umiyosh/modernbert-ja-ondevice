@@ -1,0 +1,58 @@
+{
+ "created": "2026-10-18T23:03:29+0900",
+ "manifest_sha256": "c68e590e7c52ff26ea6f2e8ee4d220b523415bb68871787fc3cc54a874da8c41",
+ "hashed_clips": 164847,
+ "splits": {
+  "train": {
+   "clips": 147362,
+   "no_duration": 0,
+   "empty": 0,
+   "shorter_than_1s": 10,
+   "longer_than_30s": 0,
+   "duration_ms_p50_p95_max": [
+    4068,
+    8784,
+    16452
+   ],
+   "down_votes_gt_0": 22598,
+   "up_votes_lt_2": 0,
+   "reported_sentence": 2357,
+   "audio_duplicates_within_split": 0,
+   "audio_duplicates_across_splits": 0
+  },
+  "val": {
+   "clips": 8965,
+   "no_duration": 0,
+   "empty": 0,
+   "shorter_than_1s": 1,
+   "longer_than_30s": 0,
+   "duration_ms_p50_p95_max": [
+    3780,
+    9288,
+    15408
+   ],
+   "down_votes_gt_0": 1843,
+   "up_votes_lt_2": 0,
+   "reported_sentence": 129,
+   "audio_duplicates_within_split": 0,
+   "audio_duplicates_across_splits": 0
+  },
+  "test": {
+   "clips": 8520,
+   "no_duration": 0,
+   "empty": 0,
+   "shorter_than_1s": 2,
+   "longer_than_30s": 0,
+   "duration_ms_p50_p95_max": [
+    4032,
+    9720,
+    15552
+   ],
+   "down_votes_gt_0": 1929,
+   "up_votes_lt_2": 0,
+   "reported_sentence": 79,
+   "audio_duplicates_within_split": 0,
+   "audio_duplicates_across_splits": 0
+  }
+ }
+}

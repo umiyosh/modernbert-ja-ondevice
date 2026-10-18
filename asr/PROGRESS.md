@@ -16,3 +16,4 @@ Numbers come from train and val only until the final evaluation; test stays seal
   (new detector) against D (Kotobae today), speaker-level paired bootstrap and permutation test, and
   adopt / reject / undecided on three separate axes (PROTOCOL.md).
 - 2026-10-18 10:01 transcribe Common Voice ja for night 1: train 15,849 clips (36.7% with errors, 1,497 homophone edits); val 8,965 clips (41.8% with errors, 739 homophone edits). Test transcripts: 0.
+- 2026-10-18 quality check (reports/quality-v0.json): no empty clip, none over 30 s, no audio hash shared within or across splits. 13 clips are under 1 s, and 2,357 train / 129 val / 79 test clips read a sentence reported on Common Voice (mostly grammar or spelling, other language, hard to pronounce); both are quarantined when labels are made, since the script may not be the truth.
