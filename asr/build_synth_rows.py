@@ -6,7 +6,7 @@ trained on and become <eval dir> (texts.json and labels.jsonl in the shape eval_
 way build_rows.py makes them (Whisper's text, error characters labelled 1); broken readings are left
 out of both.
 
-usage: python asr/build_synth_rows.py <asr.jsonl> <out prefix> <eval dir> [--eval-from 15840]
+usage: python asr/build_synth_rows.py <asr.jsonl[,more]> <out prefix> <eval dir> [--eval-from 15840]
 """
 
 import collections
@@ -23,7 +23,13 @@ def main() -> None:
     cut = int(sys.argv[sys.argv.index("--eval-from") + 1]) if "--eval-from" in sys.argv else 15840
     rows, seen, n = [], set(), collections.Counter()
     texts, labels = [], []
-    for r in map(json.loads, open(src, encoding="utf-8")):
+    ids_seen = set()
+    for r in (json.loads(line) for s in src.split(",") for line in open(s, encoding="utf-8")):
+        # Two readers can reach the same line at a range boundary; keep the first reading.
+        if r["id"] in ids_seen:
+            n["same_id"] += 1
+            continue
+        ids_seen.add(r["id"])
         if r["verdict"] == "broken":
             n["broken"] += 1
             continue

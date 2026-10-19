@@ -1,10 +1,12 @@
 """Transcribe synth_tts.py's readings with the Whisper of cv_asr.py and label them with classify.diff,
 as Common Voice clips are labelled: the sentence read is the script, Whisper's text the transcript.
-Readings already in <out> are skipped, so it can run while synthesis is still going.
+Readings already in any asr*.jsonl beside <out> are skipped, so it can run while synthesis is still
+going and two runs can split the manifests between them.
 
 usage: python asr/synth_asr.py <out.jsonl> <manifest.jsonl>...
 """
 
+import glob
 import json
 import os
 import sys
@@ -17,9 +19,8 @@ from cv_asr import MODEL
 
 def main() -> None:
     out, manifests = sys.argv[1], sys.argv[2:]
-    done = set()
-    if os.path.exists(out):
-        done = {json.loads(line)["id"] for line in open(out, encoding="utf-8")}
+    here = os.path.dirname(os.path.abspath(out))
+    done = {json.loads(line)["id"] for f in glob.glob(os.path.join(here, "asr*.jsonl")) for line in open(f, encoding="utf-8")}
     todo = [r for m in manifests for r in map(json.loads, open(m, encoding="utf-8")) if r["id"] not in done]
     n = 0
     with open(out, "a", encoding="utf-8") as f:
