@@ -1,7 +1,9 @@
 """Average the weights of checkpoints fine-tuned from the same detector (a uniform model soup): one
 model, no extra cost at inference, and less of the run-to-run spread a single run's threshold shows.
+A checkpoint given as <dir>@<w> weighs w (default 1, normalised): with the published detector as one
+side this interpolates back toward it (WiSE-FT), keeping some of what the fine-tuning forgot.
 
-usage: python asr/soup.py <out dir> <checkpoint dir>...
+usage: python asr/soup.py <out dir> <checkpoint dir>[@w]...
 """
 
 import os
@@ -12,9 +14,11 @@ from safetensors.torch import load_file, save_file
 
 
 def main() -> None:
-    out, dirs = sys.argv[1], sys.argv[2:]
+    out = sys.argv[1]
+    parts = [a.rsplit("@", 1) if "@" in a else (a, "1") for a in sys.argv[2:]]
+    dirs, ws = [d for d, _ in parts], [float(w) for _, w in parts]
     states = [load_file(os.path.join(d, "model.safetensors")) for d in dirs]
-    avg = {k: sum(s[k].float() for s in states).div(len(states)).to(states[0][k].dtype) for k in states[0]}
+    avg = {k: sum(w * s[k].float() for w, s in zip(ws, states)).div(sum(ws)).to(states[0][k].dtype) for k in states[0]}
     os.makedirs(out, exist_ok=True)
     save_file(avg, os.path.join(out, "model.safetensors"), metadata={"format": "pt"})
     for f in os.listdir(dirs[0]):
