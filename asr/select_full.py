@@ -3,7 +3,12 @@ val: among the pairs whose false marks on error-free clips stay within 1 per 1,0
 operating point of PROTOCOL.md), the one with the highest span recall. JWTD-overlap clips are left out
 as in the primary metric. D keeps its shipped thresholds; this is for C.
 
-usage: python asr/select_full.py <labels.jsonl> <eval dir> <name> [<name>...]
+With --written <dir>, a pair must also keep within the budget on the 60 error-free Kotobae texts
+(clean~ ids of <dir>/texts.json, run through typo_eval under the same name), as D's shipped thresholds
+were chosen to: on val alone C's detector threshold fell to where it marked 3.5 per 1,000
+characters of those texts (PROTOCOL.md, operating point).
+
+usage: python asr/select_full.py <labels.jsonl> <eval dir> [--written <dir>] <name> [<name>...]
 """
 
 import collections
@@ -32,20 +37,36 @@ def counts(recs, probes, deltas, det, score) -> collections.Counter:
     return c
 
 
+def written_budget(d: str, name: str):
+    texts = {t["id"]: t["text"] for t in json.load(open(os.path.join(d, "texts.json"), encoding="utf-8"))}
+    clean = [t for t in texts if t.startswith("clean~")]
+    chars = sum(len(texts[t]) for t in clean)
+    probes = json.load(open(os.path.join(d, f"res-{name}det-r0.json"), encoding="utf-8"))
+    deltas = json.load(open(os.path.join(d, f"deltas-{name}.json"), encoding="utf-8"))
+    return lambda det, score: 1000 * sum(len(marks(probes[t], deltas[t], det, score)) for t in clean) / chars <= BUDGET
+
+
 def main() -> None:
-    labels, eval_dir, *names = sys.argv[1:]
+    args = sys.argv[1:]
+    written = None
+    if "--written" in args:
+        i = args.index("--written")
+        written = args[i + 1]
+        del args[i : i + 2]
+    labels, eval_dir, *names = args
     with open(labels, encoding="utf-8") as f:
         recs = [r for r in map(json.loads, f) if r["split"] == "val" and r["status"] != "quarantine" and not r["jwtd"]]
     for name in names:
         probes = json.load(open(os.path.join(eval_dir, f"res-{name}det-r0.json"), encoding="utf-8"))
         deltas = json.load(open(os.path.join(eval_dir, f"deltas-{name}.json"), encoding="utf-8"))
+        within = written_budget(written, name) if written else (lambda t, s: True)
         best = None
         for s in SCORE:
             # False marks fall as the detector threshold rises, so the first that fits is the best
             # detector threshold for this score threshold.
             for t in DET:
                 m = summary(counts(recs, probes, deltas, t, s))
-                if m["false_marks_per_1k_chars"] <= BUDGET:
+                if m["false_marks_per_1k_chars"] <= BUDGET and within(t, s):
                     if best is None or m["span_recall"] > best["span_recall"]:
                         best = {"detector": t, "score": s, **m}
                     break

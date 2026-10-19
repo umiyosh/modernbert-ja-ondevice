@@ -68,6 +68,13 @@ mixed.
 - **Operating point**: the thresholds at which false marks on val error-free clips are at most 1 per
   1,000 characters, the budget Kotobae uses today. For D its shipped thresholds are kept and their
   val false-mark rate is reported.
+  Amended 2026-10-19, before test was opened: C's thresholds must also keep within the budget on the
+  60 error-free Kotobae texts, the condition D's shipped thresholds were chosen under. Chosen on val
+  alone, C's detector threshold fell to 0.67, where it marked 3.5 per 1,000 characters of those texts
+  (mostly Latin, digits and written phrasing, which Common Voice lacks), so the practical axis would
+  have failed on a threshold no one would ship. The 60 texts were looked at once for this; with the
+  amendment their budget holds for C and D by construction, and generalization to written text rests
+  on the external holdout.
 - **Primary**: span recall: error spans (homophone, mishear, extra) overlapped by at least one mark,
   over all error spans.
 - **Secondary**: span precision (marks overlapping an error span over all marks); span F1; AUPRC over
