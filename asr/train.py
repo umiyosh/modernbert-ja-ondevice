@@ -5,7 +5,10 @@ published detector at a pinned revision instead of the base model, takes the lea
 and saves a checkpoint every --save-every steps so val picks the step (step 8).
 
 usage: python asr/train.py <data.npz[,more.npz]> <out dir> [--init M] [--revision R] [--epochs 2]
-                           [--lr 2e-5] [--seed 0] [--save-every 1000]
+                           [--lr 2e-5] [--seed 0] [--save-every 1000] [--stop-at N]
+
+--stop-at ends the run after step N while the schedule stays that of all --epochs, so a checkpoint val
+picked can be trained again under other seeds without the steps after it.
 """
 
 import argparse
@@ -55,6 +58,7 @@ def main() -> None:
     ap.add_argument("--lr", type=float, default=2e-5)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--save-every", type=int, default=1000)
+    ap.add_argument("--stop-at", type=int, default=0)
     a = ap.parse_args()
     random.seed(a.seed)
     np.random.seed(a.seed)
@@ -106,8 +110,10 @@ def main() -> None:
                 print(f"step {step}/{steps} loss {running / 100:.4f} elapsed {el / 60:.1f}m "
                       f"eta {(steps - step) * el / step / 60:.1f}m", flush=True)
                 running = 0.0
-            if step % a.save_every == 0 or step == steps:
+            if step % a.save_every == 0 or step == steps or step == a.stop_at:
                 save(step)
+            if step == a.stop_at:
+                steps = step
     print("done", flush=True)
 
 
