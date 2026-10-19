@@ -6,7 +6,9 @@ trained on and become <eval dir> (texts.json and labels.jsonl in the shape eval_
 way build_rows.py makes them (Whisper's text, error characters labelled 1); broken readings are left
 out of both.
 
-usage: python asr/build_synth_rows.py <asr.jsonl[,more]> <out prefix> <eval dir> [--eval-from 15840]
+usage: python asr/build_synth_rows.py <asr.jsonl[,more]> <out prefix> <eval dir> [--eval-from 15840] [--eval-to N]
+
+--eval-to ends the held-out lines, so sentences appended later (synth_sentences.py) are trained on.
 """
 
 import collections
@@ -21,6 +23,7 @@ def main() -> None:
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     src, out, eval_dir = args[:3]
     cut = int(sys.argv[sys.argv.index("--eval-from") + 1]) if "--eval-from" in sys.argv else 15840
+    end = int(sys.argv[sys.argv.index("--eval-to") + 1]) if "--eval-to" in sys.argv else float("inf")
     rows, seen, n = [], set(), collections.Counter()
     texts, labels = [], []
     ids_seen = set()
@@ -35,7 +38,7 @@ def main() -> None:
             continue
         rec = {"path": r["id"], "split": "val", "status": "error" if r["verdict"] == "error" else "clean",
                "jwtd": False, "ref": r["ref"], "hyp": r["hyp"], "edits": r["edits"]}
-        if int(r["id"].rsplit("-", 1)[1]) >= cut:
+        if cut <= int(r["id"].rsplit("-", 1)[1]) < end:
             texts.append({"id": r["id"], "text": r["hyp"]})
             labels.append(rec)
             n["eval_" + rec["status"]] += 1
