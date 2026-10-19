@@ -16,6 +16,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 IRODORI = Path.home() / "Library/Caches/com.umiyosh.atodekiku/local-tts-models/local-irodori-mlx-mlx-community-Irodori-TTS-v4.1-Small-8bit"
@@ -44,10 +45,31 @@ def irodori_reader():
 def say_reader():
     def read(i: int, text: str, wav: Path) -> str:
         voice = SAY_VOICES[i % len(SAY_VOICES)]
-        subprocess.run(["say", "-v", voice, "--file-format=WAVE", "--data-format=LEI16@16000", "-o", str(wav), text], check=True)
+        # The text goes on stdin: a sentence starting with "-" was taken for an option.
+        subprocess.run(["say", "-v", voice, "--file-format=WAVE", "--data-format=LEI16@16000", "-o", str(wav)],
+                       input=text, text=True, check=True)
         return voice
 
     return read
+
+
+def read_or_skip(read, i: int, text: str, wav: Path) -> str | None:
+    """A line is tried three times, then skipped (None). Two readers died on one minute's file errors
+    from `say` and left 1,756 lines unread; now a bad line or minute costs only itself."""
+    for _ in range(3):
+        # Irodori's library prints its settings for every call; keep the log to progress lines.
+        with open(os.devnull, "w") as null:
+            saved, sys.stdout = sys.stdout, null
+            try:
+                return read(i, text, wav)
+            except subprocess.CalledProcessError as e:
+                err = e
+            finally:
+                sys.stdout = saved
+        wav.unlink(missing_ok=True)
+        time.sleep(5)
+    print(f"skipped line {i}: {err}", flush=True)
+    return None
 
 
 def main() -> None:
@@ -60,13 +82,9 @@ def main() -> None:
             wav = out / engine / f"{i:06d}.wav"
             if wav.exists():
                 continue
-            # Irodori's library prints its settings for every call; keep the log to progress lines.
-            with open(os.devnull, "w") as null:
-                saved, sys.stdout = sys.stdout, null
-                try:
-                    voice = read(i, text, wav)
-                finally:
-                    sys.stdout = saved
+            voice = read_or_skip(read, i, text, wav)
+            if voice is None:
+                continue
             m.write(json.dumps({"id": f"{engine}-{i:06d}", "engine": engine, "voice": voice, "text": text, "wav": str(wav)}, ensure_ascii=False) + "\n")
             m.flush()
             if (i - start + 1) % 100 == 0:
