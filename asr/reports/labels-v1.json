@@ -1,0 +1,52 @@
+{
+ "created": "2026-10-19T15:37:59+0900",
+ "trainval_sha256": "3b6db4f0f0f5d50dccb4fc628ad0db8146092fde63d79332bf7f14ab6b47cc74",
+ "second_recognizer": "reazon-research/reazonspeech-k2-v2 (rev 291488c8, greedy search)",
+ "splits": {
+  "train": {
+   "clips": 142143,
+   "status": {
+    "quarantine": 18543,
+    "clean": 89369,
+    "error": 34231
+   },
+   "quarantine_reasons": {
+    "reader": 14850,
+    "reported": 2170,
+    "broken": 2106,
+    "short": 10
+   },
+   "edit_kinds_in_error_clips": {
+    "mishear": 31364,
+    "homophone": 10896,
+    "extra": 1320,
+    "drop": 1334
+   },
+   "mishear_drop_extra_edits_checked": 58756,
+   "of_which_reader_slips": 17315
+  },
+  "val": {
+   "clips": 8714,
+   "status": {
+    "clean": 4473,
+    "error": 2416,
+    "quarantine": 1825
+   },
+   "quarantine_reasons": {
+    "reader": 1223,
+    "reported": 122,
+    "broken": 515,
+    "short": 1
+   },
+   "edit_kinds_in_error_clips": {
+    "mishear": 2738,
+    "homophone": 573,
+    "extra": 130,
+    "drop": 128
+   },
+   "mishear_drop_extra_edits_checked": 5599,
+   "of_which_reader_slips": 1550
+  }
+ },
+ "val_jwtd_flagged": 94
+}
