@@ -105,7 +105,8 @@ def read_or_skip(read, i: int, text: str, wav: Path) -> str | None:
             saved, sys.stdout = sys.stdout, null
             try:
                 return read(i, text, wav)
-            except (subprocess.CalledProcessError, ValueError) as e:
+            # misaki's Japanese G2P asserts on some digit runs ("10"); that line alone is skipped.
+            except (subprocess.CalledProcessError, ValueError, AssertionError) as e:
                 err = e
             finally:
                 sys.stdout = saved
