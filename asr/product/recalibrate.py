@@ -42,8 +42,9 @@ base = {"kotobae": prod.kotobae_fm(prod.load("..", "rust"), 0.4707, 5.13), "clea
 prod.GATE = True
 print("before #98:", {k: round(v, 3) for k, v in base.items()}, base_sets)
 rows = []
-for det in [round(0.5 + 0.02 * i, 2) for i in range(16)]:
-    for score in (4.5, 4.75, 5.0, 5.13, 5.25, 5.5, 5.75, 6.0, 6.25, 6.5, 7.0):
+# A scorer trained with a wider margin spreads every lead, so its mark can sit well above 5.13.
+for det in [round(0.5 + 0.02 * i, 2) for i in range(21)]:
+    for score in [4.5, 4.75, 5.0, 5.13] + [round(5.25 + 0.25 * i, 2) for i in range(20)]:
         sets = prod.sets(K, det, score)
         ok = (prod.kotobae_fm(K, det, score) <= max(1.0, base["kotobae"]) and clean(C, det, score) <= base["clean"]
               and hom(V, "dev", det, score)[1] <= base["dev_fm"] and sets["right_marked"] <= 2
