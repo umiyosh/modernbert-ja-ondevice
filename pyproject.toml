@@ -12,3 +12,7 @@ dependencies = [
     "protobuf",
     "numpy",
 ]
+
+[project.optional-dependencies]
+# Only for training/: readings for the synthetic errors (augment.py).
+train = ["fugashi", "unidic-lite"]
