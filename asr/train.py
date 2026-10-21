@@ -61,6 +61,7 @@ def main() -> None:
     ap.add_argument("--save-every", type=int, default=1000)
     ap.add_argument("--save-from", type=int, default=0)
     ap.add_argument("--stop-at", type=int, default=0)
+    ap.add_argument("--mask-rate", type=float, default=0.0)
     a = ap.parse_args()
     random.seed(a.seed)
     np.random.seed(a.seed)
@@ -85,6 +86,12 @@ def main() -> None:
             x[i, : len(ids)] = torch.from_numpy(ids.astype(np.int64))
             y[i, : len(lab)] = torch.from_numpy(lab.astype(np.int64))
             att[i, : len(ids)] = 1
+        if a.mask_rate > 0:
+            # Masked-FT (arXiv 2305.17721): hiding some correct tokens keeps the detector from memorising
+            # the error pairs it saw. The hidden positions are left out of the loss.
+            hide = (y == 0) & (torch.rand(y.shape, generator=gen) < a.mask_rate)
+            x[hide] = tok.mask_token_id
+            y[hide] = -100
         return x.to(dev), att.to(dev), y.to(dev)
 
     def save(step: int) -> None:
