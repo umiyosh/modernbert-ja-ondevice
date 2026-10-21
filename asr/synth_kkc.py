@@ -35,6 +35,7 @@ import train_scorer as ts  # noqa: E402
 
 KKC = "yuuki14202028/kanakanji-edge-33m"
 RUN, LEFT, BEAMS = 15, 40, 4
+PROMPT_LEN, NEW_TOKENS = 96, 16
 B = int(os.environ.get("KKC_BATCH", "64"))  # prompts per generate call
 KANJI = re.compile("[㐀-鿿]")
 WORDLIKE = re.compile("[぀-ヿ㐀-鿿]+")
@@ -94,14 +95,15 @@ def convert(model, tok, prompts, limit):
     tok.padding_side = "left"
     eos = tok.eos_token_id
     ids = [tok.encode(p, add_special_tokens=False) for p in prompts]
-    n = max(map(len, ids))
+    # One shape for every batch (left-padded to PROMPT_LEN, NEW_TOKENS out): MPS keeps buffers per shape.
+    n = max(PROMPT_LEN, *map(len, ids))
     x = torch.full((len(ids), n), eos)
     att = torch.zeros((len(ids), n), dtype=torch.long)
     for i, p in enumerate(ids):
         x[i, n - len(p):] = torch.tensor(p)
         att[i, n - len(p):] = 1
     out = model.generate(x.to(DEV), attention_mask=att.to(DEV), num_beams=BEAMS, num_return_sequences=BEAMS,
-                         max_new_tokens=limit, eos_token_id=eos, pad_token_id=eos, do_sample=False)
+                         max_new_tokens=max(NEW_TOKENS, limit), eos_token_id=eos, pad_token_id=eos, do_sample=False)
     texts = [tok.decode(o[n:], skip_special_tokens=True).strip() for o in out]
     return [texts[i * BEAMS:(i + 1) * BEAMS] for i in range(len(prompts))]
 
@@ -176,6 +178,8 @@ def main() -> None:
             f.flush()
             with open(done_path, "w") as g:
                 g.write(str(min(i + B, len(pool))))
+            if DEV == "mps" and (i // B) % 10 == 0:
+                torch.mps.empty_cache()  # what fixed shapes leave over (the last, shorter chunks)
             if (i // B) % 50 == 0:
                 print(json.dumps({"done": min(i + B, len(pool)), "tried": tried, "kept": kept}), flush=True)
     print(json.dumps({"done": len(pool), "tried": tried, "kept": kept}), flush=True)
