@@ -7,8 +7,14 @@ masked-LM loss on the good sentences keeps the model a language model (Masked-FT
 A share of the pair groups is held out; its ranking accuracy and mean lead are printed at each save, so
 a run that only memorises its pairs shows. Checkpoints go to <out>/step<N>.
 
-usage: python asr/train_scorer.py <pairs.jsonl> <out dir> [--lr 2e-5] [--steps 3000] [--batch 16]
-                                  [--margin 2.0] [--mlm 1.0] [--save-every 1000] [--seed 0]
+usage: python asr/train_scorer.py <pairs.jsonl[,more.jsonl]> <out dir> [--lr 2e-5] [--steps 3000] [--batch 8]
+                                  [--margin 2.0] [--margin-fix M] [--margin-keep M] [--mlm 1.0]
+                                  [--save-every 1000] [--seed 0]
+
+--margin-fix and --margin-keep set the margin per kind of pair (default --margin for both): a `fix` pair
+should clear the app's mark (lead 5.13), while a `keep` or `hard` pair (a correct word against what voice
+input confuses it with, or against an alternative the scorer already favours on correct text) only has to
+stay below it.
 """
 
 import argparse
@@ -129,6 +135,8 @@ def main() -> None:
     ap.add_argument("--steps", type=int, default=3000)
     ap.add_argument("--batch", type=int, default=8)
     ap.add_argument("--margin", type=float, default=2.0)
+    ap.add_argument("--margin-fix", type=float, default=None)
+    ap.add_argument("--margin-keep", type=float, default=None)
     ap.add_argument("--mlm", type=float, default=1.0)
     ap.add_argument("--save-every", type=int, default=1000)
     ap.add_argument("--held-max", type=int, default=2000)
@@ -139,7 +147,9 @@ def main() -> None:
     gen = torch.Generator().manual_seed(a.seed)
     tok = AutoTokenizer.from_pretrained(BASE)
     model = AutoModelForMaskedLM.from_pretrained(BASE).to(DEV).train()
-    rows = [json.loads(line) for line in open(a.pairs, encoding="utf-8")]
+    rows = [json.loads(line) for path in a.pairs.split(",") for line in open(path, encoding="utf-8")]
+    m_fix = a.margin if a.margin_fix is None else a.margin_fix
+    m_keep = a.margin if a.margin_keep is None else a.margin_keep
     groups = sorted({r["group"] for r in rows})
     random.Random(a.seed).shuffle(groups)
     held_groups = set(groups[: int(len(groups) * HELD)])
@@ -159,7 +169,8 @@ def main() -> None:
         chunk = random.sample(train, a.batch)
         wins = [w for _, v in chunk for w in v]
         s = scores(model, tok, wins).view(-1, 2)
-        rank = F.softplus(a.margin - (s[:, 0] - s[:, 1])).mean()
+        margin = torch.tensor([m_fix if r["kind"] == "fix" else m_keep for r, _ in chunk], device=DEV)
+        rank = F.softplus(margin - (s[:, 0] - s[:, 1])).mean()
         mlm = mlm_loss(model, tok, [v[0] for _, v in chunk], gen) if a.mlm > 0 else torch.zeros((), device=DEV)
         loss = rank + a.mlm * mlm
         opt.zero_grad()
