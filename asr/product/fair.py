@@ -133,7 +133,11 @@ def main():
     print(f"dev clips {len(RS)}, error clips {len(GOLD)}, homophone-only error clips {n_hom}, "
           f"clean {sum(r['status'] == 'clean' for r in RS)}", flush=True)
     for name in names:
-        load, gate = SYSTEMS[name]
+        if ":" in name:
+            run_name, line_at, w_at = name.split(":")
+            load, gate = (lambda: run("eval-dev", run_name, float(line_at), float(w_at))), True
+        else:
+            load, gate = SYSTEMS[name]
         src = load()
         prod.GATE = gate
         points = []
