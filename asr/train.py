@@ -10,6 +10,9 @@ usage: python asr/train.py <data.npz[,more.npz]> <out dir> [--init M] [--revisio
 --stop-at ends the run after step N while the schedule stays that of all --epochs, so a checkpoint val
 picked can be trained again under other seeds without the steps after it. --save-from skips the
 checkpoints before step N (each is 530 MB, and seeds trained for a soup are averaged at known steps).
+--teacher with --kd W adds, on the tokens labelled correct, W times the cross-entropy to a frozen teacher's
+distribution (Wei+ 2024's prior-knowledge teacher): training on simulated swaps raised P on correct words
+so far that the ordinary typos the detector alone marked fell under their floors (Kotobae #98, 10-23).
 """
 
 import argparse
@@ -62,6 +65,8 @@ def main() -> None:
     ap.add_argument("--save-from", type=int, default=0)
     ap.add_argument("--stop-at", type=int, default=0)
     ap.add_argument("--mask-rate", type=float, default=0.0)
+    ap.add_argument("--teacher", default="")
+    ap.add_argument("--kd", type=float, default=0.0)
     a = ap.parse_args()
     random.seed(a.seed)
     np.random.seed(a.seed)
@@ -70,6 +75,10 @@ def main() -> None:
     rev = a.revision if a.init == DETECTOR else None
     tok = AutoTokenizer.from_pretrained(a.init, revision=rev)
     model = AutoModelForTokenClassification.from_pretrained(a.init, revision=rev).to(dev).train()
+    teacher = None
+    if a.teacher and a.kd > 0:
+        teacher = AutoModelForTokenClassification.from_pretrained(a.teacher).to(dev).eval()
+        teacher.requires_grad_(False)
     rows = Rows(a.data.split(","))
     steps = int(math.ceil(len(rows) / B) * a.epochs)
     print(f"{len(rows)} rows from {a.data}; {steps} steps, lr {a.lr}, seed {a.seed}", flush=True)
@@ -106,7 +115,15 @@ def main() -> None:
             if step >= steps:
                 break
             x, att, y = batch([rows[i] for i in order[k : k + B]])
-            loss = model(input_ids=x, attention_mask=att, labels=y).loss
+            out = model(input_ids=x, attention_mask=att, labels=y)
+            loss = out.loss
+            if teacher is not None:
+                with torch.no_grad():
+                    soft = torch.softmax(teacher(input_ids=x, attention_mask=att).logits.float(), -1)
+                ok = y == 0
+                if ok.any():
+                    logp = torch.log_softmax(out.logits.float(), -1)
+                    loss = loss + a.kd * -(soft[ok] * logp[ok]).sum(-1).mean()
             loss.backward()
             torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
             opt.step()
