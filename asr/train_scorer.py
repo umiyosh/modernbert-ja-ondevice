@@ -1,6 +1,7 @@
 """Fine-tune the on-device check's scorer (modernbert-ja-130m as a masked LM) on scorer_pairs.py's pairs
 (Kotobae #98). The score is the app's own (typo::pipeline::score): the sentence cut to 32 tokens around
-the word, and the summed log P of the word's tokens and two on each side, each masked in turn. A pair's
+the word, and the summed log P of the word's tokens and NEIGHBOURS on each side (two unless
+SCORER_NEIGHBOURS says otherwise), each masked in turn. A pair's
 lead is the good word's score minus the bad word's; the loss pushes it past a margin (softplus), and a
 masked-LM loss on the good sentences keeps the model a language model (Masked-FT, arXiv 2305.17721).
 
@@ -30,7 +31,9 @@ import torch.nn.functional as F
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 
 BASE = "sbintuitions/modernbert-ja-130m"
-LEN, NEIGHBOURS = 32, 2
+LEN = 32
+# Tokens on each side; set to 3 to train as KOTOBAE_TYPO_NEIGHBOURS=3 scores in the app (Kotobae #98, 10-25).
+NEIGHBOURS = int(os.environ.get("SCORER_NEIGHBOURS", "2"))
 HELD = 0.05
 # Scored positions per window at most (a longer word is left out), and masked tokens per sentence in
 # the masked-LM loss. Every batch is padded to the same shapes: MPS keeps buffers per input shape, and
