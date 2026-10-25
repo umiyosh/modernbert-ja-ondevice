@@ -18,7 +18,9 @@ import verify_sweep as v  # noqa: E402
 
 DIRS = ("eval-dev", "..", "eval-clean")
 DETS = [round(0.5 + 0.02 * i, 2) for i in range(23)] + [0.96, 0.97, 0.98, 0.99, 0.995, 2.0]
-SCORES = [round(4.0 + 0.5 * i, 2) for i in range(25)]
+# SWEEP_SCORE_LO widens the grid downward for a scorer on another scale (the untrained BERT of plan step 3).
+LO = float(os.environ.get("SWEEP_SCORE_LO", "4.0"))
+SCORES = [round(LO + 0.5 * i, 2) for i in range(int((16.0 - LO) / 0.5) + 1)]
 
 
 def main():
