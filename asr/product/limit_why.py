@@ -1,6 +1,7 @@
 """Which limit keeps a version out when marks_sweep.py finds nothing within limits (Kotobae #98): over the same
 grid, the points that break exactly one limit, counted per limit, with the best dev-half homophone recall each
-would have reached. Only the dev half is read.
+would have reached, and the best point within the false-mark limits alone (the typo-set floors set aside), which
+is how the prior-work scorer of plan step 3 is compared. Only the dev half is read.
 
 usage (from asr/): python tools/limit_why.py <name> <line>
 """
@@ -14,6 +15,9 @@ sys.path.insert(0, os.path.dirname(__file__))
 import marks_sweep as m  # noqa: E402
 import prod  # noqa: E402
 import screen_sweep as s  # noqa: E402
+
+
+FALSE_MARKS = {"kotobae", "jwtd clean", "dev fm", "right_marked"}
 
 
 def broken(V, K, C, base, base_sets, det, score):
@@ -32,10 +36,12 @@ def main():
     runs = {d: prod.load(d, name) for d in m.DIRS}
     base, base_sets = s.limits()
     V, K, C = (s.screened(runs[d], line) for d in m.DIRS)
-    best, count = {}, collections.Counter()
+    best, count, fm_only = {}, collections.Counter(), None
     for det in m.DETS:
         for score in m.SCORES:
             rec, out = broken(V, K, C, base, base_sets, det, score)
+            if not set(out) & FALSE_MARKS and (fm_only is None or rec > fm_only[0]):
+                fm_only = (rec, det, score, prod.sets(K, det, score))
             if len(out) == 1:
                 count[out[0]] += 1
                 if rec > best.get(out[0], (0,))[0]:
@@ -43,6 +49,9 @@ def main():
     for k, n in count.most_common():
         rec, det, score = best[k]
         print(f"{name} line {line}: only {k} broken at {n} points; best there dev {rec:.3f} (det {det} score {score})")
+    if fm_only:
+        rec, det, score, sets = fm_only
+        print(f"{name} line {line}: within the false-mark limits alone, best dev {rec:.3f} (det {det} score {score}) {sets}")
 
 
 if __name__ == "__main__":
