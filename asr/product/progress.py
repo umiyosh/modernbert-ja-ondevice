@@ -27,6 +27,8 @@ NOTES = {
     "sb2k5t0": ("10-26", "run9（人工の同音の取り違え 12 万組を追加、15,000 歩）をそのまま", ""),
     "sb2k5t45": ("10-26", "soup-run3-7 と run9 を半分ずつ", ""),
     "sb2k5t55": ("10-26", "soup-m45 と run9 を半分ずつ", ""),
+    "sv4k5m45": ("10-26", "候補に学習の文の語の一覧（1 トークンの区間、よく出る上位 4 語）を足し、採点役は m45", ""),
+    "sv2k5m45": ("10-26", "候補に学習の文の語の一覧（1 トークンの区間、上位 2 語）を足し、採点役は m45", ""),
 }
 POOLED = re.compile(r"pooled ([\d.]+)x D: homophones ([\d.]+)% \((\d+)/(\d+)\) fm ([\d.]+)/1k")
 PAIR = re.compile(r"(\S+) (\d+)/(\d+) vs (\S+) (\d+)/(\d+): only \S+ (\d+), only \S+ (\d+), exact McNemar p=([\d.e-]+)")
@@ -42,7 +44,7 @@ def line_of(path, name):
 def versions():
     rows = []
     for path in glob.glob("scorer/crossfit-*.txt"):
-        name = re.match(r"crossfit-(sb2k5[a-z]*\d*)", os.path.basename(path)).group(1)
+        name = re.match(r"crossfit-([a-z0-9]+)", os.path.basename(path)).group(1)
         line = line_of(path, name)
         got = {m[0]: m for m in POOLED.findall(open(path).read())}
         pair = f"scorer/pair-{name}-l{line}.txt"
