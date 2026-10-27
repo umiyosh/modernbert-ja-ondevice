@@ -70,16 +70,17 @@ footer { color: var(--muted); font-size: 13px; text-align: center; }
 
   <section>
     <span class="tag">1 · 最終評価</span>
-    <h2>同音の取り違えの検出率は 22.0% から 66.3% に上がった</h2>
+    <h2>同音の取り違えの再現率は 22.0% から 66.3% に上がった</h2>
     <p class="note" id="final-note"></p>
+    <p class="note">再現率は、本物の誤りのうち印が重なった割合です。適合率は、誤りのある書き起こしに付けた印のうち、本物の誤りに重なった割合です。正しい書き起こしに付けた印は、適合率とは別に「誤った印 / 1,000 字」で示します。</p>
     <div class="scroll"><table id="final"></table></div>
     <p class="warn">目標は「誤った印 1,000 字に約 1 個で、同音の取り違え 60%」でした。試験の前に書いた判定（誤った印 1.00 以下）は 0.05 超えています。別の音声認識（ReazonSpeech）と書き言葉の文（FLEURS）では 42.9% で、伸びは持ち越せますが水準は下がります。</p>
   </section>
 
   <section>
-    <span class="tag">2 · 候補ごとの検出率</span>
-    <h2>試した候補の、本物の音声入力の同音の取り違えの検出率</h2>
-    <div class="chart"><canvas id="cand-chart" aria-label="候補ごとの検出率を日付順に並べた散布図"></canvas></div>
+    <span class="tag">2 · 候補ごとの再現率</span>
+    <h2>試した候補の、本物の音声入力の同音の取り違えの再現率</h2>
+    <div class="chart"><canvas id="cand-chart" aria-label="候補ごとの再現率を日付順に並べた散布図"></canvas></div>
     <p class="note">塗りつぶしは、誤った印の上限と通常の誤字の下限をすべて守った点、白抜きは守れなかった点です。10/22 に評価を作り直したので、それより前は検証用の話者全体、後は話者を 2 つに分けた片方で閾値を選んだ点の値です。物差しが違うので、比べるのは同じ期間の中だけにしてください。どれも選択に使った値なので、最終評価より少し良く見えている可能性があります。</p>
   </section>
 
@@ -92,10 +93,10 @@ footer { color: var(--muted); font-size: 13px; text-align: center; }
 
   <section>
     <span class="tag">4 · 採点役の学習</span>
-    <h2>学習ごとの損失と、取り分けた例での正答率</h2>
+    <h2>学習ごとの損失と、取り分けた組での正解率</h2>
     <div class="controls"><label for="run">学習</label><select id="run"></select><span class="note" id="run-note"></span></div>
     <div class="chart small"><canvas id="loss-chart" aria-label="選んだ学習の損失の推移"></canvas></div>
-    <div class="chart small"><canvas id="held-chart" aria-label="選んだ学習の取り分けた例での正答率"></canvas></div>
+    <div class="chart small"><canvas id="held-chart" aria-label="選んだ学習の取り分けた例での正解率"></canvas></div>
     <p class="note">順位の損失は、話された語を書かれた語より上に置く組の損失、穴埋めの損失は、日本語のモデルであることを保つための損失です。取り分けた例は学習ごとに違うので、学習どうしでなく、同じ学習の最初と最後を比べてください。</p>
     <div class="scroll"><table id="runs"></table></div>
   </section>
@@ -131,11 +132,11 @@ fetch("data.json").then((r) => r.json()).then((d) => {
   const flHom = Object.fromEntries(fl.systems.map((s) => [s.key, s]));
   document.getElementById("final-note").textContent =
     `Common Voice 27.0 日本語の test（学習・検証と話者・文が重ならない ${t.clips.toLocaleString()} 件、${t.groups.toLocaleString()} 話者、同音の取り違え ${t.systems[0].homophones} 件）を、版と閾値をすべて決めた後に一度だけ測りました。括弧は話者単位のブートストラップの 95% 区間です。FLEURS は別の音声認識で書き起こした外部データ（${fl.clips.toLocaleString()} 件）です。`;
-  table(document.getElementById("final"), ["系", "同音の取り違え", "すべての誤り", "誤った印 / 1,000 字", "FLEURS の同音"],
+  table(document.getElementById("final"), ["系", "同音の取り違えの再現率", "すべての誤りの再現率", "適合率", "誤った印 / 1,000 字", "FLEURS の同音の再現率"],
     t.systems.map((s) => ({ rowClass: s.key === "C" ? "best" : "", cells: [esc(s.label),
-      pct(s.homophone_recall) + ci(s.homophone_recall_ci95), pct(s.span_recall),
+      pct(s.homophone_recall) + ci(s.homophone_recall_ci95), pct(s.span_recall), pct(s.span_precision),
       s.false_marks_per_1k_chars.toFixed(2), flHom[s.key] ? pct(flHom[s.key].homophone_recall) : "—"] })),
-    ["", "num", "num", "num", "num"]);
+    ["", "num", "num", "num", "num", "num"]);
 
   const stages = [...new Set(d.candidates.map((c) => c.stage))];
   const colors = ["--c1", "--c2", "--c3", "--c4", "--c5", "--c6", "--c7", "--c8", "--c9"].map(css);
@@ -153,12 +154,12 @@ fetch("data.json").then((r) => r.json()).then((d) => {
     ] },
     options: { maintainAspectRatio: false, scales: {
         x: { type: "linear", ticks: { callback: (v) => new Date(v).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" }), maxTicksLimit: 8 } },
-        y: { title: { display: true, text: "同音の取り違えの検出率（%）" }, suggestedMin: 15, suggestedMax: 70 } },
+        y: { title: { display: true, text: "同音の取り違えの再現率（%）" }, suggestedMin: 15, suggestedMax: 70 } },
       plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 11 } } },
         tooltip: { callbacks: { label: (c) => c.raw.label ? `${c.raw.label}: ${c.raw.y.toFixed(1)}%` : c.dataset.label } } } },
   });
 
-  table(document.getElementById("crossfit"), ["版", "線", "変えたこと", "0.85 倍", "誤った印", "1.0 倍", "基準 q7 との比較", "採否"],
+  table(document.getElementById("crossfit"), ["版", "線", "変えたこと", "再現率（0.85 倍）", "誤った印", "再現率（1.0 倍）", "基準 q7 との比較", "採否"],
     d.crossfit.map((r) => ({ rowClass: r.label === "m45（線 0.05）" ? "best" : "",
       cells: [esc(r.label.replace(/（.*$/, "")), esc((r.label.match(/線 ([\d.]+)/) || [])[1] || ""), esc(r.change), esc(r.recall85), esc(r.fm85), esc(r.recall10), esc(r.vs_q7), esc(r.verdict)] })),
     ["", "num", "", "num", "num", "num", "", ""]);
@@ -169,7 +170,7 @@ fetch("data.json").then((r) => r.json()).then((d) => {
     options: { maintainAspectRatio: false, parsing: false, scales: { x: { type: "linear", title: { display: true, text: "歩数" } }, y: { title: { display: true, text: "損失" } } },
       plugins: { legend: { position: "bottom" } }, elements: { point: { radius: 0 } } } });
   const heldChart = new Chart(document.getElementById("held-chart"), { type: "line", data: { datasets: [] },
-    options: { maintainAspectRatio: false, parsing: false, scales: { x: { type: "linear", title: { display: true, text: "歩数" } }, y: { title: { display: true, text: "正答率（%）" } } },
+    options: { maintainAspectRatio: false, parsing: false, scales: { x: { type: "linear", title: { display: true, text: "歩数" } }, y: { title: { display: true, text: "正解率（%）" } } },
       plugins: { legend: { position: "bottom" } } } });
   const runInfo = Object.fromEntries(d.runs.map((r) => [r.run, r]));
   const show = (run) => {
@@ -194,7 +195,7 @@ fetch("data.json").then((r) => r.json()).then((d) => {
 
   document.getElementById("cand-count").textContent = d.candidates.length;
   const n = (x, f) => (x == null ? "—" : f(x));
-  table(document.getElementById("cand-table"), ["日付", "段", "候補", "上限を守る", "音声の同音", "音声のすべて", "読み上げの同音", "誤字の問題", "誤った印（Kotobae の文）", "誤った印（音声）", "検出器", "候補の差"],
+  table(document.getElementById("cand-table"), ["日付", "段", "候補", "上限を守る", "音声の同音の再現率", "音声のすべての再現率", "読み上げの同音の再現率", "見つけた誤字の問題", "誤った印（Kotobae の文）", "誤った印（音声）", "検出器", "候補の差"],
     d.candidates.map((c) => ({ cells: [new Date(c.at).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" }), esc(c.stage), esc(c.label), c.ok ? "○" : "×",
       n(c.hom_real, pct), n(c.span_real, pct), n(c.hom_read, pct), n(c.typos, String), n(c.fm_kotobae, (x) => x.toFixed(2)), n(c.fm_real, (x) => x.toFixed(2)), n(c.det, String), n(c.score, String)] })),
     ["", "", "", "", "num", "num", "num", "num", "num", "num", "num", "num"]);

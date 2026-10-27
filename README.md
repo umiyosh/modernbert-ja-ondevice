@@ -107,15 +107,15 @@ The model cards hold the training settings in full.
 
 ### Results
 
-Measured once on Common Voice test after every choice was fixed ([`asr/PROTOCOL.md`](asr/PROTOCOL.md), [`asr/reports/final-test.json`](asr/reports/final-test.json)): 6,563 clips of 2,091 speakers, 523 homophone errors, each system at its fixed point, run through Kotobae's own pipeline on Core ML. Intervals are 95%, by bootstrap over speakers.
+Measured once on Common Voice test after every choice was fixed ([`asr/PROTOCOL.md`](asr/PROTOCOL.md), [`asr/reports/final-test.json`](asr/reports/final-test.json)): 6,563 clips of 2,091 speakers, 523 homophone errors, each system at its fixed point, run through Kotobae's own pipeline on Core ML. Intervals are 95%, by bootstrap over speakers. Precision is the share of marks on transcripts with errors that overlap an error; marks on correct transcripts are counted apart, per 1,000 characters.
 
-| System | Homophone recall | All error spans | False marks per 1,000 characters of correct transcripts |
-| --- | --- | --- | --- |
-| Published detector and scorer (0.995 / 7.0) | **66.3%** (61.9–70.6) | 21.5% | 1.05 (0.80–1.32) |
-| The detector above with modernbert-ja-130m scoring (before #98) | 22.0% | 8.8% | 0.88 |
-| Fujii and Shinnou (2021) zero-shot BERT scoring, same candidates | 41.3% | 19.2% | 0.98 |
-| Jev, a commercial per-phrase error check | 23.7% | 28.8% | 1.89 |
-| Rules alone (confusion table, unknown words) | 58.1% | 30.2% | 60.35 |
+| System | Homophone recall | Recall of all error spans | Precision | False marks per 1,000 characters of correct transcripts |
+| --- | --- | --- | --- | --- |
+| Published detector and scorer (0.995 / 7.0) | **66.3%** (61.9–70.6) | 21.5% | 93.5% | 1.05 (0.80–1.32) |
+| The detector above with modernbert-ja-130m scoring (before #98) | 22.0% | 8.8% | 81.0% | 0.88 |
+| Fujii and Shinnou (2021) zero-shot BERT scoring, same candidates | 41.3% | 19.2% | 95.0% | 0.98 |
+| Jev, a commercial per-phrase error check | 23.7% | 28.8% | 85.9% | 1.89 |
+| Rules alone (confusion table, unknown words) | 58.1% | 30.2% | 33.1% | 60.35 |
 
 Against the version before #98 the gain is +44.4 points in homophone recall and +12.7 points in all error spans (p < 0.001 for both); the false-mark difference (+0.18) is not significant (p = 0.25). The goal was 60% homophone recall at about one false mark per 1,000 characters. Before test the judgment was written as at most 1.00; at 1.05 it misses that line by 0.05, and Kotobae's owner counts the goal as met.
 
