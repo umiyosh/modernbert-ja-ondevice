@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>音声入力の誤変換検出の学習の推移</title>
+<link rel="icon" href="data:,">
+<meta name="description" content="modernbert-ja-130m の誤変換検出器と同音語の採点役を、音声入力の聞き違いで学ばせた過程と最終評価。">
+<style>
+/* One reading column; a result table first, then the charts that led to it. */
+:root {
+  --bg: #f6f7f4; --paper: #ffffff; --ink: #1d2320; --muted: #5f6a64; --line: #d6dbd5;
+  --accent: #23705a; --accent-soft: #e2f0ea; --warn: #9a5b00; --warn-soft: #f8ecd7;
+  --c1: #23705a; --c2: #2f6fb0; --c3: #b5651d; --c4: #8a4fa8; --c5: #a83a3a; --c6: #5d7d2a; --c7: #4a5a66; --c8: #c08a1a; --c9: #2a8a8f;
+  --body: "Hiragino Sans", "Noto Sans JP", "Yu Gothic", system-ui, sans-serif;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111513; --paper: #1a201d; --ink: #e5ebe7; --muted: #9aa69f; --line: #303a35;
+    --accent: #6cc4a3; --accent-soft: #1e3a30; --warn: #e2a94c; --warn-soft: #3a2c14;
+    --c1: #6cc4a3; --c2: #7fb2e6; --c3: #e3a065; --c4: #c39be0; --c5: #e98585; --c6: #a9c972; --c7: #a6b4bf; --c8: #e8c05e; --c9: #6fd0d4;
+    color-scheme: dark; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.75;
+  padding: 32px max(16px, env(safe-area-inset-right, 0px)) 64px max(16px, env(safe-area-inset-left, 0px)); }
+main { max-width: 920px; margin: 0 auto; display: grid; gap: 28px; }
+header h1 { font-size: clamp(24px, 4.5vw, 32px); line-height: 1.3; margin: 0; text-wrap: balance; }
+header p { margin: 8px 0 0; color: var(--muted); }
+nav { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 10px; font-size: 14px; }
+a { color: var(--accent); }
+section { background: var(--paper); border: 1px solid var(--line); border-radius: 10px; padding: 22px; display: grid; gap: 12px; min-width: 0; }
+h2 { font-size: 19px; margin: 0; line-height: 1.4; }
+.tag { font-family: var(--mono); font-size: 12px; letter-spacing: .06em; color: var(--accent); }
+.note { color: var(--muted); font-size: 13.5px; margin: 0; }
+.warn { background: var(--warn-soft); border-left: 4px solid var(--warn); padding: 10px 14px; border-radius: 0 8px 8px 0; font-size: 13.5px; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; font-variant-numeric: tabular-nums; }
+th, td { border-bottom: 1px solid var(--line); padding: 7px 8px; text-align: left; vertical-align: top; }
+th { color: var(--muted); font-weight: 600; white-space: nowrap; }
+td.num, th.num { text-align: right; white-space: nowrap; }
+tr.best td { background: var(--accent-soft); font-weight: 600; }
+#crossfit { min-width: 860px; }
+#crossfit th:nth-child(3) { width: 30%; }
+#crossfit th:nth-child(7), #crossfit th:nth-child(8) { width: 16%; }
+#cand-table { min-width: 1000px; }
+#cand-table th:nth-child(3) { width: 26%; }
+.ci { color: var(--muted); font-size: 12px; }
+.chart { position: relative; height: 380px; }
+.chart.small { height: 300px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px; }
+select { font: inherit; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--paper); color: var(--ink); }
+details summary { cursor: pointer; color: var(--accent); }
+footer { color: var(--muted); font-size: 13px; text-align: center; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>音声入力の誤変換検出の学習の推移</h1>
+    <p>modernbert-ja-130m の誤変換検出器と同音語の採点役を、音声認識の聞き違い（「誤変換」→「5変換」）で学ばせた過程と、最後に一度だけ測った最終評価です。数字はすべて件数と指標で、音声や文は含みません。</p>
+    <nav>
+      <a href="https://github.com/umiyosh/modernbert-ja-ondevice">コード</a>
+      <a href="https://github.com/umiyosh/modernbert-ja-ondevice/blob/master/asr/PROTOCOL.md">評価の取り決め</a>
+      <a href="https://github.com/umiyosh/modernbert-ja-ondevice/blob/master/asr/PROGRESS.md">経過の記録</a>
+      <a href="https://huggingface.co/umiyosh/modernbert-ja-130m-typo-detector">検出器</a>
+      <a href="https://huggingface.co/umiyosh/modernbert-ja-130m-homophone-scorer">採点役</a>
+    </nav>
+  </header>
+
+  <section>
+    <span class="tag">1 · 最終評価</span>
+    <h2>同音の取り違えの検出率は 22.0% から 66.3% に上がった</h2>
+    <p class="note" id="final-note"></p>
+    <div class="scroll"><table id="final"></table></div>
+    <p class="warn">目標は「誤った印 1,000 字に約 1 個で、同音の取り違え 60%」でした。試験の前に書いた判定（誤った印 1.00 以下）は 0.05 超えています。別の音声認識（ReazonSpeech）と書き言葉の文（FLEURS）では 42.9% で、伸びは持ち越せますが水準は下がります。</p>
+  </section>
+
+  <section>
+    <span class="tag">2 · 候補ごとの検出率</span>
+    <h2>試した候補の、本物の音声入力の同音の取り違えの検出率</h2>
+    <div class="chart"><canvas id="cand-chart" aria-label="候補ごとの検出率を日付順に並べた散布図"></canvas></div>
+    <p class="note">塗りつぶしは、誤った印の上限と通常の誤字の下限をすべて守った点、白抜きは守れなかった点です。10/22 に評価を作り直したので、それより前は検証用の話者全体、後は話者を 2 つに分けた片方で閾値を選んだ点の値です。物差しが違うので、比べるのは同じ期間の中だけにしてください。どれも選択に使った値なので、最終評価より少し良く見えている可能性があります。</p>
+  </section>
+
+  <section>
+    <span class="tag">3 · 採点役の版</span>
+    <h2>2 つの半分で互いに閾値を選んで測った成績</h2>
+    <p class="note">検証用の話者を 2 つに分け、片方で選んだ閾値をもう片方に当てた値（566 件）です。「0.85 倍」は誤った印の上限を #98 の前の版の 0.85 倍にした条件で、採否はこの値と基準の版（q7）との対の検定で決めました。線は、候補を採点に回す検出器の確率の下限です。</p>
+    <div class="scroll"><table id="crossfit"></table></div>
+  </section>
+
+  <section>
+    <span class="tag">4 · 採点役の学習</span>
+    <h2>学習ごとの損失と、取り分けた例での正答率</h2>
+    <div class="controls"><label for="run">学習</label><select id="run"></select><span class="note" id="run-note"></span></div>
+    <div class="chart small"><canvas id="loss-chart" aria-label="選んだ学習の損失の推移"></canvas></div>
+    <div class="chart small"><canvas id="held-chart" aria-label="選んだ学習の取り分けた例での正答率"></canvas></div>
+    <p class="note">順位の損失は、話された語を書かれた語より上に置く組の損失、穴埋めの損失は、日本語のモデルであることを保つための損失です。取り分けた例は学習ごとに違うので、学習どうしでなく、同じ学習の最初と最後を比べてください。</p>
+    <div class="scroll"><table id="runs"></table></div>
+  </section>
+
+  <section>
+    <span class="tag">5 · 候補の一覧</span>
+    <h2>試した候補ごとの製品の指標</h2>
+    <details><summary>表を開く（<span id="cand-count"></span> 行）</summary>
+      <div class="scroll"><table id="cand-table"></table></div>
+    </details>
+    <p class="note">誤った印は 1,000 字あたり。「Kotobae の文」は校正アプリ Kotobae の正しい文 60 本（非公開）、「音声」は Common Voice の正しい書き起こしです。「macOS の声」は学習に macOS の読み上げを使った候補で、規約上公開できないため採用していません。</p>
+  </section>
+
+  <footer>データは <code>docs/build.py</code> が測定の出力と <code>asr/reports</code> から作っています。</footer>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" integrity="sha384-9nhczxUqK87bcKHh20fSQcTGD4qq5GhayNYSYWqwBkINBhOfQLg/P5HG5lF1urn4" crossorigin="anonymous"></script>
+<script>
+const pct = (x, d = 1) => (100 * x).toFixed(d) + "%";
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const table = (el, head, rows, cls = []) => {
+  el.innerHTML = "<thead><tr>" + head.map((h, i) => `<th class="${cls[i] || ""}">${h}</th>`).join("") + "</tr></thead><tbody>" +
+    rows.map((r) => `<tr class="${r.rowClass || ""}">` + r.cells.map((c, i) => `<td class="${cls[i] || ""}">${c}</td>`).join("") + "</tr>").join("") + "</tbody>";
+};
+const ci = (v) => `<span class="ci">（${pct(v[0])}〜${pct(v[1])}）</span>`;
+
+fetch("data.json").then((r) => r.json()).then((d) => {
+  Chart.defaults.color = css("--muted");
+  Chart.defaults.borderColor = css("--line");
+  Chart.defaults.font.family = css("--body");
+
+  const t = d.final_test, fl = d.final_fleurs;
+  const flHom = Object.fromEntries(fl.systems.map((s) => [s.key, s]));
+  document.getElementById("final-note").textContent =
+    `Common Voice 27.0 日本語の test（学習・検証と話者・文が重ならない ${t.clips.toLocaleString()} 件、${t.groups.toLocaleString()} 話者、同音の取り違え ${t.systems[0].homophones} 件）を、版と閾値をすべて決めた後に一度だけ測りました。括弧は話者単位のブートストラップの 95% 区間です。FLEURS は別の音声認識で書き起こした外部データ（${fl.clips.toLocaleString()} 件）です。`;
+  table(document.getElementById("final"), ["系", "同音の取り違え", "すべての誤り", "誤った印 / 1,000 字", "FLEURS の同音"],
+    t.systems.map((s) => ({ rowClass: s.key === "C" ? "best" : "", cells: [esc(s.label),
+      pct(s.homophone_recall) + ci(s.homophone_recall_ci95), pct(s.span_recall),
+      s.false_marks_per_1k_chars.toFixed(2), flHom[s.key] ? pct(flHom[s.key].homophone_recall) : "—"] })),
+    ["", "num", "num", "num", "num"]);
+
+  const stages = [...new Set(d.candidates.map((c) => c.stage))];
+  const colors = ["--c1", "--c2", "--c3", "--c4", "--c5", "--c6", "--c7", "--c8", "--c9"].map(css);
+  const day = (s) => new Date(s).getTime();
+  const span = [Math.min(...d.candidates.map((c) => day(c.at))), day("2026-10-27T23:00:00+09:00")];
+  new Chart(document.getElementById("cand-chart"), {
+    type: "scatter",
+    data: { datasets: [
+      ...stages.map((st, i) => ({ label: st, data: d.candidates.filter((c) => c.stage === st && c.hom_real != null)
+        .map((c) => ({ x: day(c.at), y: 100 * c.hom_real, label: c.label, ok: c.ok })),
+        borderColor: colors[i % colors.length], backgroundColor: (ctx) => ctx.raw && ctx.raw.ok ? colors[i % colors.length] : "transparent",
+        pointRadius: 5, pointHoverRadius: 7, borderWidth: 1.5 })),
+      { label: "目標 60%", type: "line", data: span.map((x) => ({ x, y: 60 })), borderColor: css("--warn"), borderDash: [6, 4], pointRadius: 0, borderWidth: 1.5 },
+      { label: "最終評価 66.3%（test）", type: "line", data: span.map((x) => ({ x, y: 66.3 })), borderColor: css("--accent"), pointRadius: 0, borderWidth: 2 },
+    ] },
+    options: { maintainAspectRatio: false, scales: {
+        x: { type: "linear", ticks: { callback: (v) => new Date(v).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" }), maxTicksLimit: 8 } },
+        y: { title: { display: true, text: "同音の取り違えの検出率（%）" }, suggestedMin: 15, suggestedMax: 70 } },
+      plugins: { legend: { position: "bottom", labels: { boxWidth: 10, font: { size: 11 } } },
+        tooltip: { callbacks: { label: (c) => c.raw.label ? `${c.raw.label}: ${c.raw.y.toFixed(1)}%` : c.dataset.label } } } },
+  });
+
+  table(document.getElementById("crossfit"), ["版", "線", "変えたこと", "0.85 倍", "誤った印", "1.0 倍", "基準 q7 との比較", "採否"],
+    d.crossfit.map((r) => ({ rowClass: r.label === "m45（線 0.05）" ? "best" : "",
+      cells: [esc(r.label.replace(/（.*$/, "")), esc((r.label.match(/線 ([\d.]+)/) || [])[1] || ""), esc(r.change), esc(r.recall85), esc(r.fm85), esc(r.recall10), esc(r.vs_q7), esc(r.verdict)] })),
+    ["", "num", "", "num", "num", "num", "", ""]);
+
+  const sel = document.getElementById("run");
+  Object.keys(d.curves).forEach((r) => sel.add(new Option(r, r)));
+  const lossChart = new Chart(document.getElementById("loss-chart"), { type: "line", data: { datasets: [] },
+    options: { maintainAspectRatio: false, parsing: false, scales: { x: { type: "linear", title: { display: true, text: "歩数" } }, y: { title: { display: true, text: "損失" } } },
+      plugins: { legend: { position: "bottom" } }, elements: { point: { radius: 0 } } } });
+  const heldChart = new Chart(document.getElementById("held-chart"), { type: "line", data: { datasets: [] },
+    options: { maintainAspectRatio: false, parsing: false, scales: { x: { type: "linear", title: { display: true, text: "歩数" } }, y: { title: { display: true, text: "正答率（%）" } } },
+      plugins: { legend: { position: "bottom" } } } });
+  const runInfo = Object.fromEntries(d.runs.map((r) => [r.run, r]));
+  const show = (run) => {
+    const c = d.curves[run];
+    lossChart.data.datasets = [
+      { label: "順位の損失", data: c.loss.filter((p) => p.rank != null).map((p) => ({ x: p.step, y: p.rank })), borderColor: colors[0], borderWidth: 1.5 },
+      { label: "穴埋めの損失", data: c.loss.filter((p) => p.mlm != null).map((p) => ({ x: p.step, y: p.mlm })), borderColor: colors[1], borderWidth: 1.5 },
+    ];
+    heldChart.data.datasets = [
+      { label: "正しい語を残す", data: c.held.map((p) => ({ x: p.step, y: 100 * p.keep_right })), borderColor: colors[0], pointRadius: 3 },
+      { label: "聞き違いを直す", data: c.held.map((p) => ({ x: p.step, y: 100 * p.fix_right })), borderColor: colors[2], pointRadius: 3 },
+    ];
+    lossChart.update(); heldChart.update();
+    const i = runInfo[run];
+    document.getElementById("run-note").textContent = i ? `${i.steps.toLocaleString()} 歩` : "";
+  };
+  sel.addEventListener("change", () => show(sel.value));
+  show(sel.value);
+  table(document.getElementById("runs"), ["学習", "歩数", "正しい語を残す（最初 → 最後）", "聞き違いを直す（最初 → 最後）", "最後の順位の損失"],
+    d.runs.map((r) => ({ cells: [r.run, r.steps.toLocaleString(), `${pct(r.keep[0])} → ${pct(r.keep[1])}`, `${pct(r.fix[0])} → ${pct(r.fix[1])}`, r.rank_loss.toFixed(3)] })),
+    ["", "num", "num", "num", "num"]);
+
+  document.getElementById("cand-count").textContent = d.candidates.length;
+  const n = (x, f) => (x == null ? "—" : f(x));
+  table(document.getElementById("cand-table"), ["日付", "段", "候補", "上限を守る", "音声の同音", "音声のすべて", "読み上げの同音", "誤字の問題", "誤った印（Kotobae の文）", "誤った印（音声）", "検出器", "候補の差"],
+    d.candidates.map((c) => ({ cells: [new Date(c.at).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" }), esc(c.stage), esc(c.label), c.ok ? "○" : "×",
+      n(c.hom_real, pct), n(c.span_real, pct), n(c.hom_read, pct), n(c.typos, String), n(c.fm_kotobae, (x) => x.toFixed(2)), n(c.fm_real, (x) => x.toFixed(2)), n(c.det, String), n(c.score, String)] })),
+    ["", "", "", "", "num", "num", "num", "num", "num", "num", "num", "num"]);
+});
+</script>
+</body>
+</html>
