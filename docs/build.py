@@ -15,8 +15,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPORTS = os.path.join(HERE, "..", "asr", "reports")
 SYSTEMS = {"C": "公開した検出器と採点役", "D": "#98 の前の版", "F": "学習なしの東北大 BERT で採点（藤井・新納 2021）",
            "B": "Jev（文節ごとに誤りを問う商用 API）", "A": "規則だけ（取り違え表と未知語）"}
-KEEP = ("span_recall", "span_recall_ci95", "homophone_recall", "homophone_recall_ci95",
-        "false_marks_per_1k_chars", "false_marks_per_1k_chars_ci95")
+KEEP = ("span_recall", "span_recall_ci95", "homophone_recall", "homophone_recall_ci95", "span_precision",
+        "span_precision_ci95", "false_marks_per_1k_chars", "false_marks_per_1k_chars_ci95")
 
 
 def final(name):
