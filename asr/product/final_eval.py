@@ -25,9 +25,11 @@ import screen_sweep as ss  # noqa: E402
 
 es = prod.eval_spans
 N = 10_000
-# Overridable only to check this script against val, whose numbers are known.
+# The runs of one set are named <system><tag>: tag "test" for Common Voice test, "fl" for the FLEURS
+# holdout (split "external", resampled by its sentence id). FINAL_C / FINAL_D only check this script on val.
+TAG = os.environ.get("FINAL_TAG", "test")
 SPLIT = os.environ.get("FINAL_SPLIT", "test")
-C_RUN, D_RUN = os.environ.get("FINAL_C", "m45test"), os.environ.get("FINAL_D", "dtest")
+C_RUN, D_RUN = os.environ.get("FINAL_C", f"m45{TAG}"), os.environ.get("FINAL_D", f"d{TAG}")
 KEYS = [("span_recall", "found", "spans"), ("homophone_recall", "homophone_found", "homophone_spans"),
         ("false_marks_per_1k_chars", "false_marks", "clean_chars"), ("span_precision", "marks_on_spans", "marks_on_error_clips")]
 
@@ -56,27 +58,28 @@ def systems(d):
     dd = prod.load(d, D_RUN)
     if dd:
         out["D"] = lambda p: es.marks(dd[0].get(p, []), dd[1].get(p, []), 0.4707, 5.13)
-    rules = os.path.join(d, "rules-dtest.json")
+    rules = os.path.join(d, f"rules-{D_RUN}.json")
     if os.path.exists(rules):
         a = json.load(open(rules, encoding="utf-8"))
         out["A"] = lambda p: [tuple(x) for x in a.get(p, [])]
-    jev = os.path.join(d, "jev-test.jsonl")
+    jev = os.path.join(d, f"jev-{TAG}.jsonl")
     if os.path.exists(jev):
         b = {r["id"]: r for r in map(json.loads, open(jev, encoding="utf-8"))}
         out["B"] = lambda p: [tuple(x) for x in b[p]["marks"]] if p in b and "marks" in b[p] else None
-    f = prod.load(d, "fstest")
+    f = prod.load(d, f"fs{TAG}")
     if f:
         f = ss.screened(f, 0.05)
-        point = json.load(open(os.path.join(d, "fstest-point.json")))
+        point = json.load(open(os.path.join(d, f"fs{TAG}-point.json")))
         out["F"] = lambda p: prod.mk(f, p, point["det"], point["score"])
     return out
 
 
 def main():
     labels, d, report_path = ARGS[:3]
-    who = {r["path"]: r["client_id"] for r in csv.DictReader(open(learned.CV, encoding="utf-8"), delimiter="\t")}
+    cv = {r["path"]: r["client_id"] for r in csv.DictReader(open(learned.CV, encoding="utf-8"), delimiter="\t")}
     recs = [r for r in map(json.loads, open(labels, encoding="utf-8")) if r["split"] == SPLIT and r["status"] != "quarantine"]
     prod.TEXT.update({r["path"]: r["hyp"] for r in recs})
+    who = {r["path"]: r.get("speaker") or cv[r["path"]] for r in recs}
     main_recs = [r for r in recs if not r["jwtd"]]
     jw_recs = [r for r in recs if r["jwtd"]]
     sysm = systems(d)
