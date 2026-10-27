@@ -15,7 +15,9 @@ import torch
 from transformers import AutoModelForMaskedLM, AutoTokenizer
 
 DEV = "mps" if torch.backends.mps.is_available() else "cpu"
-LEN, NEIGHBOURS, B = 32, 2, 256
+LEN, B = 32, 256
+# Tokens on each side; 3 as KOTOBAE_TYPO_NEIGHBOURS=3 scores in the app (Kotobae #98, 10-24).
+NEIGHBOURS = int(os.environ.get("PLL_NEIGHBOURS", "2"))
 ENDS = "。！？\n"
 
 

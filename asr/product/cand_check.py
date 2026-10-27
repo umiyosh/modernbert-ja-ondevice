@@ -4,7 +4,7 @@ product point misses with the right word in no row (nocand_cases.py), how many t
 many alternatives the new rows add per 1,000 characters of the dev half's correct clips (the scoring
 cost); and, for the ones still missing with no row on the span, how the segmenter tagged the tokens there.
 
-usage (from asr/): python tools/cand_check.py <name> [base c0]
+usage (from asr/): python tools/cand_check.py <name> [base c0] [system line w det score, default sb0s 0.1 1 0.96 9.5]
 """
 import collections
 import json
@@ -37,7 +37,8 @@ def main():
     cands, toks = load(name)
     half = json.load(open("split-calib.json"))
     c, tags = collections.Counter(), collections.Counter()
-    for r, text, a, b, e in nocand_cases.cases():
+    system = (ARGS[2], *(float(x) for x in ARGS[3:7])) if len(ARGS) > 6 else ()
+    for r, text, a, b, e in nocand_cases.cases(*system):
         c["cases"] += 1
         right = text[:a] + e["ref"] + text[b:]
         rows = cands.get(r["path"], [])

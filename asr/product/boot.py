@@ -46,13 +46,17 @@ def per_speaker(src, det, score, rs, who):
     return out
 
 
+# The calib half is scored in its own directory (Kotobae #98, 10-24): eval-dev holds only the dev half.
+RUNS = "eval-calib" if ARGS and ARGS[0] == "calib" else "eval-dev"
+
+
 def load(spec):
     if ":" not in spec:
         return prod.load("eval-val", spec)
     name, line, w = spec.split(":")
-    src = prod.load("eval-dev", name)
+    src = prod.load(RUNS, name)
     if float(w):
-        src = vs.verified(src, json.load(open(f"eval-dev/verify-{name}.json", encoding="utf-8")), float(w))
+        src = vs.verified(src, json.load(open(f"{RUNS}/verify-{name}.json", encoding="utf-8")), float(w))
     return ss.screened(src, float(line))
 
 
