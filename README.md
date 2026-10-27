@@ -86,7 +86,7 @@ Limits: JWTD is written in full-width characters with no line breaks, so half-wi
 
 ## Voice-input errors
 
-The models published now come from the work on [kotobae#98](https://github.com/umiyosh/kotobae/issues/98): speech recognition writes a word that sounds like the one said (誤変換 heard as 5変換), and the detector above, trained on typed text, missed most of them. The code, the evaluation protocol written before training and the reports are in [`asr/`](asr/README.md).
+The models published now come from the work on issue #98 of Kotobae, a proofreading app (its repository is private): speech recognition writes a word that sounds like the one said (誤変換 heard as 5変換), and the detector above, trained on typed text, missed most of them. The code, the evaluation protocol written before training and the reports are in [`asr/`](asr/README.md).
 
 - [umiyosh/modernbert-ja-130m-typo-detector](https://huggingface.co/umiyosh/modernbert-ja-130m-typo-detector) rev `33115ea`: the detector above, trained further on recognition errors (`asr/train.py`), pre-trained on synthetic kana-kanji conversion confusions (`asr/synth_kkc.py`), and averaged with the earlier weights (`asr/soup.py`)
 - [umiyosh/modernbert-ja-130m-homophone-scorer](https://huggingface.co/umiyosh/modernbert-ja-130m-homophone-scorer) rev `0abe0ed`: modernbert-ja-130m trained to put the word that was said above the homophones speech recognition writes for it (`asr/scorer_pairs.py`, `asr/train_scorer.py`)
