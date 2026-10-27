@@ -152,7 +152,9 @@ A, B and D are unchanged. One reference system is added:
 - **F**: the zero-shot scoring of Fujii and Shinnou (2021): `tohoku-nlp/bert-base-japanese-whole-word-masking`, untrained for
   this task, replaces the word with one [MASK] and compares log probabilities, on C's candidates and detector. On val no point
   keeps every limit, so F runs at the point that keeps the false-mark limits alone on the dev half
-  (detector 0.94, score 3.5). F is reported and takes no part in any decision.
+  (detector 0.94, score 3.5). F is reported and takes no part in any decision. Rebuilt on 2026-10-27 on C's own Rust candidates (the val
+  runs of the shipped check, screen 0.05, the zero-shot leads in place of C's), the false-mark-only point is
+  the same (0.94 / 3.5, 40.8% of the dev half's homophones), so F on test rescores C's test candidates.
 
 ### The goal of kotobae#98
 
