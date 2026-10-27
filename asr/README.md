@@ -1,10 +1,12 @@
 # Speech-recognition errors for the typo detector
 
-Work in progress. The goal is to find out, with an evaluation free of leaks, whether training the
-typo detector on real speech-recognition errors makes it catch errors such as 誤変換 → 5変換 that it
-misses today ([kotobae#98](https://github.com/umiyosh/kotobae/issues/98)). The answer is reported as
-adopt, reject or undecided under [PROTOCOL.md](PROTOCOL.md), fixed before training; [PROGRESS.md](PROGRESS.md)
-records each step.
+Finished on 2026-10-27. The question was whether training on real speech-recognition errors makes
+the typo check catch errors such as 誤変換 → 5変換 that it missed
+([kotobae#98](https://github.com/umiyosh/kotobae/issues/98)), answered as adopt, reject or undecided
+under [PROTOCOL.md](PROTOCOL.md), fixed before training and amended before test was opened. The answer
+is adopt: on test, homophone recall rose from 22.0% to 66.3% at 1.05 false marks per 1,000 characters
+(reports/final-test.json, summarized in the [top README](../README.md#voice-input-errors)).
+[PROGRESS.md](PROGRESS.md) records each step.
 
 ## Design constraint
 
