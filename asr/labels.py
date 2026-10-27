@@ -14,7 +14,8 @@
 Val clips whose sentence is in JWTD train are flagged (jwtd) for leaving the primary metric.
 Writes labels.jsonl (local: holds transcripts) and a report of counts (committed).
 
-usage: python asr/labels.py <cv ja dir> <split dir> <whisper.jsonl> <reazon.jsonl> <labels.jsonl> <report.json>
+usage: python asr/labels.py <cv ja dir> <split dir> <whisper.jsonl> <reazon.jsonl> <labels.jsonl> <report.json> [--test]
+       --test labels the test split from test.tsv, which carries its own JWTD flag (final evaluation only)
 """
 
 import collections
@@ -42,14 +43,19 @@ def reader_slips(edits: list[dict], second: list[dict]) -> int:
 
 
 def main() -> None:
-    root, split_dir, whisper, reazon, out, report_path = sys.argv[1:7]
-    trainval = os.path.join(split_dir, "trainval.tsv")
-    split = {r["path"]: r["split"] for r in read(trainval)}
+    test = "--test" in sys.argv
+    root, split_dir, whisper, reazon, out, report_path = [a for a in sys.argv[1:] if a != "--test"][:6]
+    trainval = os.path.join(split_dir, "test.tsv" if test else "trainval.tsv")
+    table = read(trainval)
+    split = {r["path"]: r["split"] for r in table}
     rows = {r["path"]: r for r in read(os.path.join(root, "validated.tsv")) if r["path"] in split}
     ms = {r["clip"]: int(r["duration[ms]"]) for r in read(os.path.join(root, "clip_durations.tsv"))}
     reported = {r["sentence_id"] for r in read(os.path.join(root, "reported.tsv")) if r.get("sentence_id")}
-    with open(os.path.join(split_dir, "jwtd_overlap_val.txt"), encoding="utf-8") as f:
-        jwtd = set(f.read().split())
+    if test:
+        jwtd = {r["path"] for r in table if r["jwtd"] == "1"}
+    else:
+        with open(os.path.join(split_dir, "jwtd_overlap_val.txt"), encoding="utf-8") as f:
+            jwtd = set(f.read().split())
     w, z = load(whisper), load(reazon)
 
     status, reasons, kinds, agree = (collections.defaultdict(collections.Counter) for _ in range(4))
@@ -93,9 +99,9 @@ def main() -> None:
                 "mishear_drop_extra_edits_checked": agree[s]["checked_edits"],
                 "of_which_reader_slips": agree[s]["reader_slip_edits"],
             }
-            for s in ("train", "val")
+            for s in (("test",) if test else ("train", "val"))
         },
-        "val_jwtd_flagged": len(jwtd),
+        ("test" if test else "val") + "_jwtd_flagged": len(jwtd),
     }
     with open(report_path, "w", encoding="utf-8") as f:
         json.dump(report, f, indent=1)
