@@ -126,3 +126,66 @@ Whisper is not public and cannot be checked; Common Voice sentences include publ
 that is likely in such web corpora. C and D start from the same pre-trained model and read the same
 Whisper transcripts, so this cannot favour one over the other, but absolute recall may read higher than
 on unseen text.
+
+## Amendment of 2026-10-27, before test is opened
+
+Written before `manifest.tsv` and `test.tsv` are unsealed. Every choice below was made on train and val.
+
+### What C is now
+
+Fine-tuning the detector alone (the C of 2026-10-19) did not reach the goal of kotobae#98, so the work
+went on to the whole check: the candidates, the scorer and how they combine. C is now the check shipped
+in Kotobae (kotobae PR #121), fixed as follows:
+
+- detector `umiyosh/modernbert-ja-130m-typo-detector` rev 33115ea, scorer
+  `umiyosh/modernbert-ja-130m-homophone-scorer` rev 0abe0ed, both run through Core ML by Kotobae's own
+  evaluation (`typo/eval_tests.rs`)
+- candidates scored for words the detector puts at 0.05 or more; a candidate scoring more than −3
+  against the written word is put into the sentence and checked again by the detector (weight 1); marks only on spans with kana or kanji
+- thresholds: detector 0.995, score 7.0. Chosen by splitting val by speaker into two halves and
+  letting each half choose the point for the other, under 0.85 times D's false marks on val clean clips,
+  at most 1 per 1,000 characters on the 60 Kotobae texts, at most 192 marks on the JWTD correct
+  sentences, and no typo subset below D; both halves chose this point
+
+A, B and D are unchanged. One reference system is added:
+
+- **F**: the zero-shot scoring of Fujii and Shinnou (2021): `tohoku-nlp/bert-base-japanese-whole-word-masking`, untrained for
+  this task, replaces the word with one [MASK] and compares log probabilities, on C's candidates and detector. On val no point
+  keeps every limit, so F runs at the point that keeps the false-mark limits alone on the dev half
+  (detector 0.94, score 3.5). F is reported and takes no part in any decision.
+
+### The goal of kotobae#98
+
+Added as its own judgment; the primary comparison above (C − D in span recall) is still tested as
+written.
+
+- Metric: homophone span recall on test (homophone edits of clips that are neither quarantined nor in
+  JWTD train), at C's fixed thresholds.
+- **Reached**: point estimate at least 60%.
+- **Shown**: the lower end of the 95% interval (paired cluster bootstrap over speakers, 10,000
+  resamples, seed 0) at least 60%.
+- Either only counts when false marks on test clean clips stay at most 1 per 1,000 characters (point
+  estimate).
+
+For the record, the selection numbers on val at this point: 64.5% of 304 homophones on one half and
+60.7% of 262 on the other, 0.98 and 0.99 false marks per 1,000 characters; D 19.4% and 24.8%. On a val
+half the 95% interval of C − D in homophone recall is about ±7 points, so on test (about twice a half)
+the minimum detectable difference at 80% power is about 7 points. For the goal, the interval at about
+566 homophones is about ±4 points, so "shown" needs a point estimate near 64%.
+
+### External holdout
+
+Changed from "a public corpus other than Common Voice" left open to:
+[FLEURS](https://huggingface.co/datasets/google/fleurs) ja_jp (CC BY 4.0), all three splits (3,208
+read utterances of translated Wikipedia sentences). None of it was used for a choice. It is transcribed
+with ReazonSpeech NeMo v2 (not Whisper), its raw transcription is the truth, and the labels follow the
+same `classify.py` rules. FLEURS gives no speaker ids, so its resampling unit is the sentence id.
+Sentences in JWTD train are reported apart. JVS and JSUT were set aside: their audio is licensed for
+non-commercial research only, and this evaluates a component of a commercial product.
+
+### Order of the final evaluation
+
+1. Unseal `manifest.tsv` and `test.tsv`; transcribe test with Whisper (as val) and ReazonSpeech (for
+   the quarantine rule); make labels.
+2. Run Kotobae's evaluation once for C, D and A; F on C's candidates; B (Jev) within the $6 cap.
+3. Report every system with the statistics above, once. Nothing is chosen after this.
