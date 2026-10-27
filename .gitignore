@@ -2,3 +2,4 @@
 build/
 *.mlpackage
 __pycache__/
+guard.log

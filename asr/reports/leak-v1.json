@@ -1,0 +1,52 @@
+{
+ "created": "2026-10-18T23:10:34+0900",
+ "manifest_sha256": "b2c43d0ee8b436a2e44dcbbb9140e1b55dc342ed79aa2d7b84ab7b25957d2822",
+ "clips": {
+  "train": 142143,
+  "val": 8714,
+  "test": 8520
+ },
+ "across_splits": {
+  "train-val": {
+   "raw_sentences": 0,
+   "normalized_sentences": 0,
+   "near_sentences_jaccard_0.5": 0,
+   "speakers": 0,
+   "audio_hashes": 0
+  },
+  "train-test": {
+   "raw_sentences": 0,
+   "normalized_sentences": 0,
+   "near_sentences_jaccard_0.5": 0,
+   "speakers": 0,
+   "audio_hashes": 0
+  },
+  "val-test": {
+   "raw_sentences": 0,
+   "normalized_sentences": 0,
+   "near_sentences_jaccard_0.5": 0,
+   "speakers": 0,
+   "audio_hashes": 0
+  }
+ },
+ "transcripts": {
+  "clips": 60982,
+  "test_clips": 0
+ },
+ "jwtd_train": {
+  "val": {
+   "sentences": 8695,
+   "equal": 1,
+   "contained_8_chars_or_more": 94
+  },
+  "test": {
+   "sentences": 8501,
+   "equal": 6,
+   "contained_8_chars_or_more": 74
+  }
+ },
+ "sealed": {
+  "trainval_rows": 150857,
+  "test_rows": 8520
+ }
+}

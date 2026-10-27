@@ -1,0 +1,53 @@
+{
+ "created": "2026-10-19T00:50:12+0900",
+ "manifest_sha256": "c68e590e7c52ff26ea6f2e8ee4d220b523415bb68871787fc3cc54a874da8c41",
+ "transcripts": 71850,
+ "test_transcripts": 0,
+ "splits": {
+  "train": {
+   "clips": 62077,
+   "verdicts": {
+    "same": 27538,
+    "error": 22678,
+    "notation": 10799,
+    "broken": 1062
+   },
+   "edit_kinds": {
+    "homophone": 5833,
+    "mishear": 23926,
+    "drop": 2015,
+    "extra": 1428
+   }
+  },
+  "unassigned": {
+   "clips": 808,
+   "verdicts": {
+    "error": 330,
+    "same": 324,
+    "broken": 24,
+    "notation": 130
+   },
+   "edit_kinds": {
+    "mishear": 370,
+    "drop": 37,
+    "extra": 23,
+    "homophone": 72
+   }
+  },
+  "val": {
+   "clips": 8965,
+   "verdicts": {
+    "notation": 1293,
+    "error": 3747,
+    "same": 3389,
+    "broken": 536
+   },
+   "edit_kinds": {
+    "drop": 506,
+    "mishear": 4800,
+    "extra": 366,
+    "homophone": 739
+   }
+  }
+ }
+}

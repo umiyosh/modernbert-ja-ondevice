@@ -1,0 +1,43 @@
+{
+ "seed": 0,
+ "manifest_sha256": "c68e590e7c52ff26ea6f2e8ee4d220b523415bb68871787fc3cc54a874da8c41",
+ "counts": {
+  "train": {
+   "path": 147362,
+   "speaker": 3354,
+   "sentence": 20015
+  },
+  "val": {
+   "path": 8965,
+   "speaker": 1142,
+   "sentence": 8940
+  },
+  "test": {
+   "path": 8520,
+   "speaker": 2284,
+   "sentence": 8501
+  }
+ },
+ "overlap": {
+  "train-val": {
+   "path": 0,
+   "speaker": 0,
+   "sentence": 0
+  },
+  "train-test": {
+   "path": 0,
+   "speaker": 0,
+   "sentence": 0
+  },
+  "val-test": {
+   "path": 0,
+   "speaker": 0,
+   "sentence": 0
+  }
+ },
+ "dropped": {
+  "validated_unassigned": 135468,
+  "test_trial_seen": 500,
+  "val_sentence_in_test": 55
+ }
+}

@@ -1,0 +1,69 @@
+{
+ "created": "2026-10-19T16:25:57+0900",
+ "system": "arule",
+ "split": "val",
+ "thresholds": {
+  "detector": 0.4707,
+  "score": 5.13
+ },
+ "jwtd_overlap": "excluded (reported separately)",
+ "counts": {
+  "clean_chars": 72255,
+  "false_marks": 4359,
+  "spans": 3409,
+  "found": 893,
+  "marks_on_error_clips": 3296,
+  "marks_on_spans": 946,
+  "error_clips": 2388,
+  "error_clips_marked": 1548,
+  "homophone_spans": 566,
+  "homophone_found": 301,
+  "drops": 128,
+  "drops_found": 28
+ },
+ "speakers": 1114,
+ "metrics": {
+  "span_recall": 0.26195365209738924,
+  "homophone_recall": 0.5318021201413428,
+  "drop_recall": 0.21875,
+  "span_precision": 0.28701456310679613,
+  "false_marks_per_1k_chars": 60.32800498235416,
+  "error_clips_marked": 0.6482412060301508
+ },
+ "ci95_speaker_bootstrap": {
+  "span_recall": [
+   0.24624183689343243,
+   0.2781052571938276
+  ],
+  "homophone_recall": [
+   0.489193878419496,
+   0.572464100518548
+  ],
+  "false_marks_per_1k_chars": [
+   58.66185562014685,
+   62.12230180363782
+  ]
+ },
+ "jwtd_overlap_only": {
+  "counts": {
+   "clean_chars": 525,
+   "false_marks": 18,
+   "spans": 32,
+   "found": 11,
+   "homophone_spans": 7,
+   "homophone_found": 3,
+   "marks_on_error_clips": 18,
+   "marks_on_spans": 12,
+   "error_clips": 28,
+   "error_clips_marked": 11
+  },
+  "metrics": {
+   "span_recall": 0.34375,
+   "homophone_recall": 0.42857142857142855,
+   "drop_recall": null,
+   "span_precision": 0.6666666666666666,
+   "false_marks_per_1k_chars": 34.285714285714285,
+   "error_clips_marked": 0.39285714285714285
+  }
+ }
+}

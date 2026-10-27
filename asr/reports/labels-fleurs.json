@@ -1,0 +1,28 @@
+{
+ "created": "2026-10-27T19:46:08+0900",
+ "corpus": "google/fleurs ja_jp (CC BY 4.0), train + dev + test",
+ "recognizer": "reazon-research/reazonspeech-k2-v2 (greedy search); second: whisper-large-v3-turbo (MLX)",
+ "clips": 3208,
+ "sentences": 1788,
+ "status": {
+  "quarantine": 570,
+  "clean": 1871,
+  "error": 767
+ },
+ "quarantine_reasons": {
+  "reader": 523,
+  "broken": 47
+ },
+ "edit_kinds_in_error_clips": {
+  "mishear": 585,
+  "homophone": 238,
+  "extra": 31,
+  "drop": 102
+ },
+ "reader_kinds": [
+  "drop",
+  "extra",
+  "mishear"
+ ],
+ "jwtd_train_sentences": 0
+}

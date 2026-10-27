@@ -1,0 +1,70 @@
+# Speech-recognition errors for the typo detector
+
+Finished on 2026-10-27. The question was whether training on real speech-recognition errors makes
+the typo check catch errors such as 誤変換 → 5変換 that it missed
+([kotobae#98](https://github.com/umiyosh/kotobae/issues/98)), answered as adopt, reject or undecided
+under [PROTOCOL.md](PROTOCOL.md), fixed before training and amended before test was opened. The answer
+is adopt: on test, homophone recall rose from 22.0% to 66.3% at 1.05 false marks per 1,000 characters
+(reports/final-test.json, summarized in the [top README](../README.md#voice-input-errors)).
+[PROGRESS.md](PROGRESS.md) records each step.
+
+## Design constraint
+
+The detector reads text only. An error that is a plausible word in its context (自己 / 事故 when both
+fit) cannot be told from the right word without the audio, so some errors are out of its reach by
+design.
+
+## Data
+
+- [Common Voice Scripted Speech 27.0 Japanese](https://mozilladatacollective.com/datasets/cmu5xbhnf00fmnq07z9p3aa70)
+  (CC0-1.0). Its terms forbid trying to identify speakers and re-hosting or re-sharing the dataset, so
+  no audio, sentence or transcript is committed here; reports hold counts and metrics only.
+  `client_id` is used only as a grouping key for the split.
+- Transcripts come from [whisper-large-v3-turbo](https://huggingface.co/openai/whisper-large-v3-turbo)
+  (MIT) through [mlx-whisper](https://github.com/ml-explore/mlx-examples) (MIT), 0.45–0.57 s per clip on
+  an Apple Silicon Mac.
+
+## Split
+
+Linking speakers and sentences puts 300,191 of the 300,315 validated clips into one connected
+component, so a split by components is impossible. `make_split.py` takes the official dev / test as
+the cores of val / test and leaves out every clip that shares a speaker or a normalized sentence with
+them. The official splits share no speaker but do share 52–55 normalized sentences, which are removed.
+
+| Split | Clips | Speakers | Sentences |
+| --- | --- | --- | --- |
+| train | 147,362 | 3,354 | 20,015 |
+| val | 8,965 | 1,142 | 8,940 |
+| test | 8,520 | 2,284 | 8,501 |
+
+135,468 validated clips are in no split. The 500 test clips looked at in the trial are excluded from
+test.
+
+Split v1 (`near_dup.py`, used for training) also removes sentences that nearly match a later split's
+sentence: a Jaccard similarity of character 3-grams of 0.5 or more, found for all pairs, which catches
+the same frame with one word swapped (木村さんに電話／本を貸してもらいました). Train loses 543
+sentences (5,219 clips) near val or test, val loses 245 sentences (251 clips) near test, and test does
+not change: train 142,143, val 8,714, test 8,520 clips. `quality_check.py` found no duplicate audio,
+empty clip or clip over 30 s.
+
+`leak_check.py` then checks the split from scratch (reports/leak-v1.json: no raw, normalized or near
+sentence, speaker or audio hash shared by any two splits; no test clip transcribed), writes
+`trainval.tsv` for training and leaves `manifest.tsv` and `test.tsv` unreadable until the final
+evaluation. Test is transcribed only for the final evaluation, and `report_asr.py` fails if any test clip
+has been transcribed before that.
+
+## Steps
+
+```sh
+CV=<dir>/cv-corpus-27.0-2026-09-11/ja   # Common Voice, not in this repository
+DATA=<dir>                              # transcripts and manifests, not in this repository
+python asr/make_split.py $CV $DATA $DATA/split-v0
+export HF_HUB_OFFLINE=1   # the model is cached; no network while transcribing
+while :; do python asr/cv_asr.py $CV $DATA/night1.jsonl --order $DATA/split-v0/asr_order.txt --n 156327; [ $? -eq 75 ] || break; done
+python asr/report_asr.py $DATA/night1.jsonl $DATA/split-v0/manifest.tsv asr/reports/asr-night1.json asr/PROGRESS.md "<title>"
+python asr/classify.py $DATA/night1.jsonl      # verdicts and examples, printed locally only
+```
+
+`cv_asr.py` exits with 75 after a clip that does not finish within `--limit` seconds and lists it in
+`<out>.hung`; the loop restarts it and the clip is skipped. `nightly.sh <pid> <report command>` waits
+for a nightly job, writes its report and commits.

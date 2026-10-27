@@ -1,0 +1,30 @@
+{
+ "created": "2026-10-27T22:26:09+0900",
+ "trainval_sha256": "d96f406e518ae709b29b022a1b6ea0c93aa3a654532b9b557e6c21f13e92d624",
+ "second_recognizer": "reazon-research/reazonspeech-k2-v2 (rev 291488c8, greedy search)",
+ "splits": {
+  "test": {
+   "clips": 8520,
+   "status": {
+    "error": 2155,
+    "quarantine": 1887,
+    "clean": 4478
+   },
+   "quarantine_reasons": {
+    "reader": 1045,
+    "reported": 79,
+    "broken": 794,
+    "short": 2
+   },
+   "edit_kinds_in_error_clips": {
+    "mishear": 2414,
+    "drop": 141,
+    "homophone": 525,
+    "extra": 115
+   },
+   "mishear_drop_extra_edits_checked": 4706,
+   "of_which_reader_slips": 1235
+  }
+ },
+ "test_jwtd_flagged": 74
+}

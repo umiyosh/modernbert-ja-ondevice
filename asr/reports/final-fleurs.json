@@ -1,0 +1,274 @@
+{
+ "systems": {
+  "C": {
+   "unscored_clips": 0,
+   "counts": {
+    "clean_chars": 87697,
+    "false_marks": 37,
+    "found": 150,
+    "homophone_found": 102,
+    "homophone_spans": 238,
+    "marks_on_error_clips": 180,
+    "marks_on_spans": 168,
+    "spans": 854
+   },
+   "span_recall": 0.1756440281030445,
+   "span_recall_ci95": [
+    0.14553668854605584,
+    0.20655776187177713
+   ],
+   "homophone_recall": 0.42857142857142855,
+   "homophone_recall_ci95": [
+    0.35059335308339296,
+    0.5079380952380952
+   ],
+   "false_marks_per_1k_chars": 0.42190724882265074,
+   "false_marks_per_1k_chars_ci95": [
+    0.25347734949542094,
+    0.6119005208723883
+   ],
+   "span_precision": 0.9333333333333333,
+   "span_precision_ci95": [
+    0.8876404494382022,
+    0.9711024184439571
+   ],
+   "jwtd_only": {
+    "span_recall": null,
+    "homophone_recall": null,
+    "drop_recall": null,
+    "span_precision": null,
+    "false_marks_per_1k_chars": null,
+    "error_clips_marked": null
+   }
+  },
+  "D": {
+   "unscored_clips": 0,
+   "counts": {
+    "clean_chars": 87697,
+    "false_marks": 29,
+    "found": 78,
+    "homophone_found": 53,
+    "homophone_spans": 238,
+    "marks_on_error_clips": 105,
+    "marks_on_spans": 84,
+    "spans": 854
+   },
+   "span_recall": 0.09133489461358314,
+   "span_recall_ci95": [
+    0.06954356027373224,
+    0.11459706250025671
+   ],
+   "homophone_recall": 0.22268907563025211,
+   "homophone_recall_ci95": [
+    0.15853658536585366,
+    0.29004329004329005
+   ],
+   "false_marks_per_1k_chars": 0.3306840598880235,
+   "false_marks_per_1k_chars_ci95": [
+    0.17965853585785332,
+    0.5065974629098348
+   ],
+   "span_precision": 0.8,
+   "span_precision_ci95": [
+    0.7047619047619048,
+    0.8842127011744236
+   ],
+   "jwtd_only": {
+    "span_recall": null,
+    "homophone_recall": null,
+    "drop_recall": null,
+    "span_precision": null,
+    "false_marks_per_1k_chars": null,
+    "error_clips_marked": null
+   }
+  },
+  "A": {
+   "unscored_clips": 0,
+   "counts": {
+    "clean_chars": 87697,
+    "false_marks": 5689,
+    "found": 244,
+    "homophone_found": 151,
+    "homophone_spans": 238,
+    "marks_on_error_clips": 2483,
+    "marks_on_spans": 249,
+    "spans": 854
+   },
+   "span_recall": 0.2857142857142857,
+   "span_recall_ci95": [
+    0.24678041915166377,
+    0.324943475253507
+   ],
+   "homophone_recall": 0.634453781512605,
+   "homophone_recall_ci95": [
+    0.5551011417782972,
+    0.7110287283481199
+   ],
+   "false_marks_per_1k_chars": 64.87109023113676,
+   "false_marks_per_1k_chars_ci95": [
+    62.54112818585478,
+    67.1792855498706
+   ],
+   "span_precision": 0.10028191703584374,
+   "span_precision_ci95": [
+    0.08654261776202211,
+    0.11446742549808883
+   ],
+   "jwtd_only": {
+    "span_recall": null,
+    "homophone_recall": null,
+    "drop_recall": null,
+    "span_precision": null,
+    "false_marks_per_1k_chars": null,
+    "error_clips_marked": null
+   }
+  },
+  "B": {
+   "unscored_clips": 0,
+   "counts": {
+    "clean_chars": 87697,
+    "false_marks": 318,
+    "found": 270,
+    "homophone_found": 64,
+    "homophone_spans": 238,
+    "marks_on_error_clips": 463,
+    "marks_on_spans": 284,
+    "spans": 854
+   },
+   "span_recall": 0.3161592505854801,
+   "span_recall_ci95": [
+    0.280836443711017,
+    0.35294117647058826
+   ],
+   "homophone_recall": 0.2689075630252101,
+   "homophone_recall_ci95": [
+    0.2050183483092119,
+    0.33913119489206445
+   ],
+   "false_marks_per_1k_chars": 3.6261217601514306,
+   "false_marks_per_1k_chars_ci95": [
+    3.0963793825019588,
+    4.170908017007285
+   ],
+   "span_precision": 0.6133909287257019,
+   "span_precision_ci95": [
+    0.5666666666666667,
+    0.6614707954747029
+   ],
+   "jwtd_only": {
+    "span_recall": null,
+    "homophone_recall": null,
+    "drop_recall": null,
+    "span_precision": null,
+    "false_marks_per_1k_chars": null,
+    "error_clips_marked": null
+   }
+  },
+  "F": {
+   "unscored_clips": 0,
+   "counts": {
+    "clean_chars": 87697,
+    "false_marks": 28,
+    "found": 141,
+    "homophone_found": 72,
+    "homophone_spans": 238,
+    "marks_on_error_clips": 156,
+    "marks_on_spans": 143,
+    "spans": 854
+   },
+   "span_recall": 0.16510538641686182,
+   "span_recall_ci95": [
+    0.1366308482496283,
+    0.19477588014229477
+   ],
+   "homophone_recall": 0.3025210084033613,
+   "homophone_recall_ci95": [
+    0.23255813953488372,
+    0.375
+   ],
+   "false_marks_per_1k_chars": 0.31928116127119516,
+   "false_marks_per_1k_chars_ci95": [
+    0.1656895423063412,
+    0.5009782918926281
+   ],
+   "span_precision": 0.9166666666666666,
+   "span_precision_ci95": [
+    0.8679245283018868,
+    0.9607843137254902
+   ],
+   "jwtd_only": {
+    "span_recall": null,
+    "homophone_recall": null,
+    "drop_recall": null,
+    "span_precision": null,
+    "false_marks_per_1k_chars": null,
+    "error_clips_marked": null
+   }
+  }
+ },
+ "clips": 2638,
+ "speakers": 1574,
+ "jwtd_clips": 0,
+ "tests": {
+  "primary C-D span_recall": {
+   "diff": 0.08430913348946135,
+   "ci95": [
+    0.05745591442823498,
+    0.11189721791210842
+   ],
+   "p": 9.999000099990002e-05
+  },
+  "C-D homophone_recall": {
+   "diff": 0.20588235294117643,
+   "ci95": [
+    0.13269585206788997,
+    0.2801959815546771
+   ],
+   "p": 9.999000099990002e-05,
+   "p_holm": 0.00019998000199980003
+  },
+  "C-D false_marks_per_1k_chars": {
+   "diff": 0.09122318893462722,
+   "ci95": [
+    -0.1292058202053056,
+    0.31241512651615944
+   ],
+   "p": 0.48095190480951905,
+   "p_holm": 0.48095190480951905
+  },
+  "C-A homophone_recall": {
+   "diff": -0.20588235294117646,
+   "ci95": [
+    -0.3285090331546555,
+    -0.08297278816417263
+   ],
+   "p": 0.0026997300269973002
+  },
+  "C-B homophone_recall": {
+   "diff": 0.15966386554621848,
+   "ci95": [
+    0.07305691104709272,
+    0.24354361812848896
+   ],
+   "p": 0.0008999100089991
+  },
+  "C-F homophone_recall": {
+   "diff": 0.12605042016806722,
+   "ci95": [
+    0.05641025641025643,
+    0.19802213711937228
+   ],
+   "p": 0.0008999100089991
+  }
+ },
+ "kotobae98_goal": {
+  "homophone_recall": 0.42857142857142855,
+  "ci95": [
+   0.35059335308339296,
+   0.5079380952380952
+  ],
+  "false_marks_per_1k_chars": 0.42190724882265074,
+  "reached": false,
+  "shown": false
+ }
+}
