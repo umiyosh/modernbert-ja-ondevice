@@ -178,7 +178,7 @@ the minimum detectable difference at 80% power is about 7 points. For the goal, 
 Changed from "a public corpus other than Common Voice" left open to:
 [FLEURS](https://huggingface.co/datasets/google/fleurs) ja_jp (CC BY 4.0), all three splits (3,208
 read utterances of translated Wikipedia sentences). None of it was used for a choice. It is transcribed
-with ReazonSpeech NeMo v2 (not Whisper), its raw transcription is the truth, and the labels follow the
+with ReazonSpeech k2 v2 (not Whisper; the recognizer `second_asr.py` runs), its raw transcription is the truth, and the labels follow the
 same `classify.py` rules. FLEURS gives no speaker ids, so its resampling unit is the sentence id.
 Sentences in JWTD train are reported apart. JVS and JSUT were set aside: their audio is licensed for
 non-commercial research only, and this evaluates a component of a commercial product.
