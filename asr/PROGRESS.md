@@ -42,3 +42,20 @@ Numbers come from train and val only until the final evaluation; test stays seal
 - Decision (three axes of PROTOCOL.md): statistical, the interval of C − D excludes 0; practical, +12.7 ≥ +5 points with 0.50 false marks per 1,000 characters on the 60 Kotobae texts; generalization, C ≥ D on FLEURS within the budget. **Adopt.**
 - kotobae#98 goal: homophone recall reaches 66.3% with the interval's lower end at 61.9%, but false marks on test clean clips are 1.05 per 1,000 characters, over the condition of at most 1.00 written before test; by the rule as written, neither "reached" nor "shown" holds. The false-mark rate is not significantly above D's (+0.18, p = 0.25) and its interval includes 1.00. On FLEURS, homophone recall is 42.9%: the 60% does not carry to another recognizer and to written text.
 - 2026-10-27, after the results: the product owner counts the kotobae#98 goal as met. The goal was "about 1 false mark per 1,000 characters"; 1.05 is within it and its interval (0.80–1.32) includes 1.00. The judgment written before test (at most 1.00, point estimate) is left as it was: by that rule neither "reached" nor "shown" holds, by 0.05.
+
+## Answers to the ten questions of the plan
+
+Every number is from the reports above; nothing was measured again for these answers.
+
+1. Is there evidence of a leak? None found. No raw, normalized or near sentence, speaker or audio hash is shared by any two splits, and no test clip was transcribed before the final evaluation (reports/leak-v1.json).
+2. Why is the leak taken as prevented, and what is left uncertain? The split was rebuilt and checked from scratch, and test stayed unreadable until step 9. Left open: whether Whisper, ReazonSpeech or ModernBERT-Ja saw Common Voice sentences in pre-training cannot be checked; the 500-clip trial showed no sign of Whisper remembering train clips. Sentences that are also in JWTD train are reported apart.
+3. Are the labels good enough? They come from rules plus agreement of two recognizers: words both recognizers hear the same way are quarantined as reader slips, and broken, reported and short clips leave every metric (reports/labels-*.json). The planned human audit of 100 clips was not done, so label quality rests on the automatic audit only. Why val has more broken transcripts than train (5.9% against 1.5%) is left open.
+4. Did the model improve on the baseline? Yes: C over D, the detector shipped before kotobae#98.
+5. By how much? Span recall 8.8% → 21.5% (+12.7 points); homophone recall 22.0% → 66.3% (+44.4 points).
+6. Is the difference significant? Yes for both (p < 0.001; the homophone recall after Holm correction). The false-mark difference (+0.18 per 1,000 characters) is not (p = 0.25).
+7. How wide are the 95% intervals? C − D span recall 11.1–14.3 points; homophone recall difference 39.0–49.7 points; C's homophone recall 61.9–70.6%; C's false marks 0.80–1.32 per 1,000 characters.
+8. Does it hold on unseen data? Partly. On FLEURS (another recognizer, written sentences) homophone recall is 42.9% against D's 22.3%: the gain carries over, the 66.3% does not. No measurement with the voice input the owner uses (AquaVoice) was made.
+9. Is the rise in false marks acceptable? Yes by the owner's goal of about one per 1,000 characters: 1.05 on clean test transcripts (D 0.88) and 0.50 on the 60 Kotobae texts.
+10. Is it worth putting into Kotobae? Yes; it ships in Kotobae (its PR #121) at detector 0.995 / score 7.0.
+
+Final judgment: **adopt** on all three axes (statistical, practical, generalization), as in the decision above.
